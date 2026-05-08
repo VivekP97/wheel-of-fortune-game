@@ -1,6 +1,6 @@
 # Implementation Progress
 
-Last updated: 2026-05-07
+Last updated: 2026-05-08
 
 ## Checklist
 - [x] Scaffold React + Vite + TypeScript app
@@ -14,6 +14,9 @@ Last updated: 2026-05-07
 - [x] Add `docs/spec.md`
 - [x] Add `docs/implementation-plan.md`
 - [x] Add and maintain `docs/progress.md`
+- [x] Add left sidebar navigation (`Play Game` / `Manage Game`)
+- [x] Add UI puzzle editor for manage game flow
+- [x] Persist puzzle edits from UI to `public/data/puzzles.json`
 - [ ] Add automated unit tests
 - [ ] Polish responsive/mobile layout
 
@@ -22,3 +25,5 @@ Last updated: 2026-05-07
 - Added puzzle source file at `public/data/puzzles.json`.
 - Implemented game flow for round-based play without score tracking.
 - Added all required planning/spec docs under `docs/`.
+- Added left-side menu and split main view into game play vs puzzle management.
+- Added save flow that updates `public/data/puzzles.json` from the Manage Game UI.

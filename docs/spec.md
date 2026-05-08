@@ -42,7 +42,6 @@ Schema:
   - `id` (string, unique, required)
   - `category` (string, required)
   - `answer` (string, required)
-  - `difficulty` (string, optional)
   - `notes` (string, optional)
 
 Example:
@@ -58,9 +57,26 @@ Example:
 }
 ```
 
+## Category list (Manage Game)
+File path: `public/data/categories.json`
+
+Used to populate the **Category** dropdown when editing puzzles. Edit this file to add, remove, or reorder category options.
+
+Schema:
+- `categories` (array of non-empty strings, unique ignoring case)
+
+Example:
+```json
+{
+  "categories": ["Phrase", "Thing", "Place", "Title"]
+}
+```
+
+If a puzzle already uses a category string that is not in this file, that value still appears in the dropdown so you can keep or change it.
+
 ## Local Run
 1. `npm install`
 2. `npm run dev`
 3. Open the local Vite URL in browser.
 
-To customize puzzles, edit `public/data/puzzles.json` and refresh the app.
+To customize puzzles, use **Manage Game** in the app or edit `public/data/puzzles.json`. To customize category choices, edit `public/data/categories.json` and refresh the app.

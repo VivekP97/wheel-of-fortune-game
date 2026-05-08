@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import './App.css'
 import GamePanel from './components/GamePanel'
 import LetterKeyboard from './components/LetterKeyboard'
+import ManageGameView from './components/ManageGameView'
 import PuzzleBoard from './components/PuzzleBoard'
 import RoundSummary from './components/RoundSummary'
 import { loadPuzzles } from './data/loadPuzzles'
@@ -21,6 +22,7 @@ import { getLatestRoundResult } from './game/round'
 import type { GameState, Player, Puzzle } from './types/game'
 
 function App() {
+  const [activeView, setActiveView] = useState<'play' | 'manage'>('play')
   const [puzzles, setPuzzles] = useState<Puzzle[]>([])
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [loadError, setLoadError] = useState('')
@@ -108,129 +110,160 @@ function App() {
 
   return (
     <main className="app-shell">
-      <header>
-        <h1>Wheel of Fortune Puzzle Board</h1>
-        <p>
-          Local multiplayer helper app with custom puzzles from
-          <code> public/data/puzzles.json</code>
-        </p>
-      </header>
+      <aside className="sidebar panel">
+        <h2>Menu</h2>
+        <button
+          type="button"
+          className={activeView === 'play' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setActiveView('play')}
+        >
+          Play Game
+        </button>
+        <button
+          type="button"
+          className={activeView === 'manage' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setActiveView('manage')}
+        >
+          Manage Game
+        </button>
+      </aside>
 
-      {loadError && <p className="error-banner">{loadError}</p>}
+      <section className="main-view">
+        <header>
+          <h1>Wheel of Fortune Puzzle Board</h1>
+          <p>
+            Local multiplayer helper app with custom puzzles from
+            <code> public/data/puzzles.json</code>
+          </p>
+        </header>
 
-      {!gameState && (
-        <section className="panel setup">
-          <h2>Game Setup</h2>
-          <label>
-            Number of players (1-4)
-            <input
-              type="number"
-              min={MIN_PLAYERS}
-              max={MAX_PLAYERS}
-              value={playerCount}
-              onChange={(event) => {
-                const value = Number(event.target.value)
-                setPlayerCount(Math.max(MIN_PLAYERS, Math.min(MAX_PLAYERS, value)))
-              }}
-            />
-          </label>
-          <label>
-            Number of rounds
-            <input
-              type="number"
-              min={1}
-              max={puzzles.length || 1}
-              value={roundCount}
-              onChange={(event) => {
-                const value = Number(event.target.value)
-                setRoundCount(Math.max(1, value))
-              }}
-            />
-          </label>
+        {loadError && <p className="error-banner">{loadError}</p>}
 
-          <div className="name-grid">
-            {playerNames.slice(0, playerCount).map((name, index) => (
-              <label key={`player-name-${index}`}>
-                Player {index + 1} Name
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(event) => {
-                    const next = [...playerNames]
-                    next[index] = event.target.value
-                    setPlayerNames(next)
-                  }}
-                />
-              </label>
-            ))}
-          </div>
-
-          <button type="button" onClick={startGame} disabled={puzzles.length === 0}>
-            Start Game
-          </button>
-          <p className="muted">Loaded puzzles: {puzzles.length}</p>
-        </section>
-      )}
-
-      {gameState && activeRound && gameState.phase === 'inRound' && (
-        <section className="game-layout">
-          <PuzzleBoard
-            answer={activeRound.puzzle.answer}
-            guessedLetters={activeRound.guessedLetters}
-            category={activeRound.puzzle.category}
+        {activeView === 'manage' && (
+          <ManageGameView
+            puzzles={puzzles}
+            onPuzzlesSaved={(saved) => {
+              setPuzzles(saved)
+              setGameState(null)
+              setLoadError('')
+            }}
           />
-          <GamePanel
+        )}
+
+        {activeView === 'play' && !gameState && (
+          <section className="panel setup">
+            <h2>Game Setup</h2>
+            <label>
+              Number of players (1-4)
+              <input
+                type="number"
+                min={MIN_PLAYERS}
+                max={MAX_PLAYERS}
+                value={playerCount}
+                onChange={(event) => {
+                  const value = Number(event.target.value)
+                  setPlayerCount(Math.max(MIN_PLAYERS, Math.min(MAX_PLAYERS, value)))
+                }}
+              />
+            </label>
+            <label>
+              Number of rounds
+              <input
+                type="number"
+                min={1}
+                max={puzzles.length || 1}
+                value={roundCount}
+                onChange={(event) => {
+                  const value = Number(event.target.value)
+                  setRoundCount(Math.max(1, value))
+                }}
+              />
+            </label>
+
+            <div className="name-grid">
+              {playerNames.slice(0, playerCount).map((name, index) => (
+                <label key={`player-name-${index}`}>
+                  Player {index + 1} Name
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(event) => {
+                      const next = [...playerNames]
+                      next[index] = event.target.value
+                      setPlayerNames(next)
+                    }}
+                  />
+                </label>
+              ))}
+            </div>
+
+            <button type="button" onClick={startGame} disabled={puzzles.length === 0}>
+              Start Game
+            </button>
+            <p className="muted">Loaded puzzles: {puzzles.length}</p>
+          </section>
+        )}
+
+        {activeView === 'play' && gameState && activeRound && gameState.phase === 'inRound' && (
+          <section className="game-layout">
+            <PuzzleBoard
+              answer={activeRound.puzzle.answer}
+              guessedLetters={activeRound.guessedLetters}
+              category={activeRound.puzzle.category}
+            />
+            <GamePanel
+              players={gameState.config.players}
+              currentPlayerIndex={activeRound.currentPlayerIndex}
+              roundNumber={gameState.currentRoundNumber}
+              maxRounds={gameState.config.maxRounds}
+              message={activeRound.lastActionMessage}
+              solveAttempt={solveInput}
+              onSolveAttemptChange={setSolveInput}
+              onSubmitSolve={submitSolve}
+              onPassTurn={() => setGameState(passTurn(gameState))}
+              onFinishRoundWithoutSolve={() =>
+                setGameState(finishRoundWithoutSolve(gameState))
+              }
+            />
+            <LetterKeyboard
+              guessedLetters={activeRound.guessedLetters}
+              onPickConsonant={submitConsonant}
+              onPickVowel={submitVowel}
+            />
+          </section>
+        )}
+
+        {activeView === 'play' && gameState?.phase === 'roundComplete' && latestRound && (
+          <RoundSummary
+            result={latestRound}
             players={gameState.config.players}
-            currentPlayerIndex={activeRound.currentPlayerIndex}
-            roundNumber={gameState.currentRoundNumber}
-            maxRounds={gameState.config.maxRounds}
-            message={activeRound.lastActionMessage}
-            solveAttempt={solveInput}
-            onSolveAttemptChange={setSolveInput}
-            onSubmitSolve={submitSolve}
-            onPassTurn={() => setGameState(passTurn(gameState))}
-            onFinishRoundWithoutSolve={() =>
-              setGameState(finishRoundWithoutSolve(gameState))
-            }
+            canAdvance={gameState.currentRoundNumber < gameState.config.maxRounds}
+            onAdvance={() => setGameState(goToNextRound(gameState))}
           />
-          <LetterKeyboard
-            guessedLetters={activeRound.guessedLetters}
-            onPickConsonant={submitConsonant}
-            onPickVowel={submitVowel}
-          />
-        </section>
-      )}
+        )}
 
-      {gameState?.phase === 'roundComplete' && latestRound && (
-        <RoundSummary
-          result={latestRound}
-          players={gameState.config.players}
-          canAdvance={gameState.currentRoundNumber < gameState.config.maxRounds}
-          onAdvance={() => setGameState(goToNextRound(gameState))}
-        />
-      )}
-
-      {gameState?.phase === 'gameComplete' && (
-        <section className="panel summary">
-          <h2>Game Complete</h2>
-          <p>All rounds are complete.</p>
-          <ul className="result-list">
-            {gameState.roundResults.map((result) => {
-              const winner = gameState.config.players.find(
-                (player) => player.id === result.winnerPlayerId,
-              )
-              return (
-                <li key={`round-result-${result.roundNumber}`}>
-                  Round {result.roundNumber}: {winner ? winner.name : 'No winner'}
-                </li>
-              )
-            })}
-          </ul>
-          <button type="button" onClick={() => setGameState(null)}>
-            Start New Game
-          </button>
-        </section>
-      )}
+        {activeView === 'play' && gameState?.phase === 'gameComplete' && (
+          <section className="panel summary">
+            <h2>Game Complete</h2>
+            <p>All rounds are complete.</p>
+            <ul className="result-list">
+              {gameState.roundResults.map((result) => {
+                const winner = gameState.config.players.find(
+                  (player) => player.id === result.winnerPlayerId,
+                )
+                return (
+                  <li key={`round-result-${result.roundNumber}`}>
+                    Round {result.roundNumber}: {winner ? winner.name : 'No winner'}
+                  </li>
+                )
+              })}
+            </ul>
+            <button type="button" onClick={() => setGameState(null)}>
+              Start New Game
+            </button>
+          </section>
+        )}
+      </section>
     </main>
   )
 }

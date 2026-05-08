@@ -2,7 +2,6 @@ export interface Puzzle {
   id: string
   category: string
   answer: string
-  difficulty?: string
   notes?: string
 }
 

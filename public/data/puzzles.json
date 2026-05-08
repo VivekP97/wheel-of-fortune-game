@@ -1,29 +1,29 @@
 {
   "puzzles": [
     {
-      "id": "puzzle-001",
-      "category": "Phrase",
-      "answer": "HELLO WORLD"
-    },
-    {
-      "id": "puzzle-002",
-      "category": "Thing",
-      "answer": "BOARD GAME NIGHT"
-    },
-    {
-      "id": "puzzle-003",
-      "category": "Place",
+      "id": "puzzle-0035",
+      "category": "What are you doing?",
       "answer": "CITY LIBRARY"
     },
     {
-      "id": "puzzle-004",
-      "category": "Event",
+      "id": "puzzle-002",
+      "category": "Food & Drink",
+      "answer": "BOARD GAME NIGHT"
+    },
+    {
+      "id": "puzzle-004s",
+      "category": "Phrase",
       "answer": "FAMILY REUNION"
     },
     {
       "id": "puzzle-005",
       "category": "Food",
       "answer": "CHOCOLATE CAKE"
+    },
+    {
+      "id": "puzzle-006",
+      "category": "Food & Drink",
+      "answer": "SDFSFD"
     }
   ]
 }

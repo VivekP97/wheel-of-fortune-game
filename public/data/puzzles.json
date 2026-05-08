@@ -1,0 +1,29 @@
+{
+  "puzzles": [
+    {
+      "id": "puzzle-001",
+      "category": "Phrase",
+      "answer": "HELLO WORLD"
+    },
+    {
+      "id": "puzzle-002",
+      "category": "Thing",
+      "answer": "BOARD GAME NIGHT"
+    },
+    {
+      "id": "puzzle-003",
+      "category": "Place",
+      "answer": "CITY LIBRARY"
+    },
+    {
+      "id": "puzzle-004",
+      "category": "Event",
+      "answer": "FAMILY REUNION"
+    },
+    {
+      "id": "puzzle-005",
+      "category": "Food",
+      "answer": "CHOCOLATE CAKE"
+    }
+  ]
+}

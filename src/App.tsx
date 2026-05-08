@@ -26,7 +26,7 @@ function App() {
   const [puzzles, setPuzzles] = useState<Puzzle[]>([])
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [loadError, setLoadError] = useState('')
-  const [playerCount, setPlayerCount] = useState(2)
+  const [playerCount, setPlayerCount] = useState(3)
   const [roundCount, setRoundCount] = useState(DEFAULT_ROUNDS)
   const [playerNames, setPlayerNames] = useState<string[]>([
     'Player 1',
@@ -47,6 +47,7 @@ function App() {
       try {
         const loaded = await loadPuzzles()
         setPuzzles(loaded)
+        setRoundCount(Math.max(1, loaded.length))
       } catch (error) {
         setLoadError(
           error instanceof Error ? error.message : 'Unknown puzzle loading error.',

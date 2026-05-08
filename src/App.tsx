@@ -39,6 +39,8 @@ function App() {
     variant: 'success' | 'error'
     message: string
   } | null>(null)
+  const [pendingRevealIndices, setPendingRevealIndices] = useState<number[]>([])
+  const [revealedTileIndices, setRevealedTileIndices] = useState<number[]>([])
 
   useEffect(() => {
     void (async () => {
@@ -54,6 +56,33 @@ function App() {
   }, [])
 
   const activeRound = gameState?.activeRound ?? null
+  const hasPendingReveals = pendingRevealIndices.length > 0
+
+  const clearRevealState = () => {
+    setPendingRevealIndices([])
+    setRevealedTileIndices([])
+  }
+
+  const collectMatchingLetterIndices = (answer: string, letter: string): number[] => {
+    const hits: number[] = []
+    const normalized = letter.toUpperCase()
+    for (let i = 0; i < answer.length; i++) {
+      if (answer[i] === normalized) {
+        hits.push(i)
+      }
+    }
+    return hits
+  }
+
+  const collectAllLetterIndices = (answer: string): number[] => {
+    const hits: number[] = []
+    for (let i = 0; i < answer.length; i++) {
+      if (/[A-Z]/.test(answer[i])) {
+        hits.push(i)
+      }
+    }
+    return hits
+  }
 
   const startGame = () => {
     if (puzzles.length === 0) {
@@ -77,6 +106,7 @@ function App() {
       setGameState(nextState)
       setSolveInput('')
       setSolveBanner(null)
+      clearRevealState()
       setLoadError('')
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Could not start game.')
@@ -84,18 +114,34 @@ function App() {
   }
 
   const submitConsonant = (letter: string) => {
-    if (!gameState) {
+    if (!gameState || hasPendingReveals) {
       return
     }
     const [next] = guessConsonant(gameState, letter)
+    const answer = next.activeRound?.puzzle.answer ?? ''
+    const hits = collectMatchingLetterIndices(answer, letter).filter(
+      (index) =>
+        !pendingRevealIndices.includes(index) && !revealedTileIndices.includes(index),
+    )
+    if (hits.length > 0) {
+      setPendingRevealIndices((current) => [...current, ...hits])
+    }
     setGameState(next)
   }
 
   const submitVowel = (letter: string) => {
-    if (!gameState) {
+    if (!gameState || hasPendingReveals) {
       return
     }
     const [next] = buyVowel(gameState, letter)
+    const answer = next.activeRound?.puzzle.answer ?? ''
+    const hits = collectMatchingLetterIndices(answer, letter).filter(
+      (index) =>
+        !pendingRevealIndices.includes(index) && !revealedTileIndices.includes(index),
+    )
+    if (hits.length > 0) {
+      setPendingRevealIndices((current) => [...current, ...hits])
+    }
     setGameState(next)
   }
 
@@ -103,10 +149,20 @@ function App() {
     if (!gameState) {
       return
     }
+    if (hasPendingReveals) {
+      setSolveBanner({
+        variant: 'error',
+        message: 'Reveal all blue tiles before continuing.',
+      })
+      return
+    }
     const [next, outcome] = attemptSolve(gameState, solveInput)
     setSolveInput('')
     setGameState(next)
     if (next.phase === 'roundSolvedAwaitingAdvance' && outcome.success) {
+      const answer = next.activeRound?.puzzle.answer ?? ''
+      setPendingRevealIndices([])
+      setRevealedTileIndices(collectAllLetterIndices(answer))
       setSolveBanner({ variant: 'success', message: outcome.message })
     } else if (!outcome.success) {
       setSolveBanner({ variant: 'error', message: outcome.message })
@@ -122,6 +178,7 @@ function App() {
     setGameState(null)
     setSolveInput('')
     setSolveBanner(null)
+    clearRevealState()
   }
 
   const isImmersivePlaySession = activeView === 'play' && gameState !== null
@@ -132,8 +189,9 @@ function App() {
       activeRound &&
       (gameState.phase === 'inRound' ||
         gameState.phase === 'roundSolvedAwaitingAdvance')
-    const roundControlsLocked = gameState?.phase === 'roundSolvedAwaitingAdvance'
-    const letterInputLocked = gameState?.phase !== 'inRound'
+    const roundControlsLocked =
+      gameState?.phase === 'roundSolvedAwaitingAdvance' || hasPendingReveals
+    const letterInputLocked = gameState?.phase !== 'inRound' || hasPendingReveals
 
     return (
       <div
@@ -150,6 +208,7 @@ function App() {
             className="next-round-btn"
             onClick={() => {
               setSolveBanner(null)
+              clearRevealState()
               setGameState(goToNextRound(gameState))
             }}
           >
@@ -165,6 +224,19 @@ function App() {
                 answer={activeRound.puzzle.answer}
                 guessedLetters={activeRound.guessedLetters}
                 category={activeRound.puzzle.category}
+                pendingRevealIndices={pendingRevealIndices}
+                revealedTileIndices={revealedTileIndices}
+                onRevealTile={(tileIndex) => {
+                  if (!pendingRevealIndices.includes(tileIndex)) {
+                    return
+                  }
+                  setPendingRevealIndices((current) =>
+                    current.filter((index) => index !== tileIndex),
+                  )
+                  setRevealedTileIndices((current) =>
+                    current.includes(tileIndex) ? current : [...current, tileIndex],
+                  )
+                }}
               />
               <GamePanel
                 players={gameState.config.players}
@@ -179,10 +251,18 @@ function App() {
                 onDismissSolveBanner={() => setSolveBanner(null)}
                 onSolveAttemptChange={setSolveInput}
                 onSubmitSolve={submitSolve}
-                onPassTurn={() => setGameState(passTurn(gameState))}
-                onFinishRoundWithoutSolve={() =>
+                onPassTurn={() => {
+                  if (hasPendingReveals) {
+                    return
+                  }
+                  setGameState(passTurn(gameState))
+                }}
+                onFinishRoundWithoutSolve={() => {
+                  if (hasPendingReveals) {
+                    return
+                  }
                   setGameState(finishRoundWithoutSolve(gameState))
-                }
+                }}
               />
               <LetterKeyboard
                 guessedLetters={activeRound.guessedLetters}
@@ -198,7 +278,10 @@ function App() {
               result={latestRound}
               players={gameState.config.players}
               canAdvance={gameState.currentRoundNumber < gameState.config.maxRounds}
-              onAdvance={() => setGameState(goToNextRound(gameState))}
+              onAdvance={() => {
+                clearRevealState()
+                setGameState(goToNextRound(gameState))
+              }}
             />
           )}
 

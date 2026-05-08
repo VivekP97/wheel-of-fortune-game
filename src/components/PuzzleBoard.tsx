@@ -4,6 +4,9 @@ interface PuzzleBoardProps {
   answer: string
   guessedLetters: string[]
   category: string
+  pendingRevealIndices: number[]
+  revealedTileIndices: number[]
+  onRevealTile: (index: number) => void
 }
 
 /** TV board: row 1 & 4 have 12 tiles; rows 2 & 3 have 14. */
@@ -35,7 +38,8 @@ function wordIndexGroups(answer: string): number[][] {
 
 /**
  * Pack puzzle words onto physical rows starting at `startRow`, using caps per row.
- * Splits a word across rows if needed. Uses one green “gap” tile between words on the same row.
+ * Words never split across rows: if a word won't fit, it moves entirely to the next row.
+ * Uses one green "gap" tile between words on the same row.
  */
 function tryPackFromStartRow(
   words: number[][],
@@ -61,35 +65,26 @@ function tryPackFromStartRow(
   }
 
   const addWord = (wordIndices: number[]): boolean => {
-    let remaining = wordIndices
-
-    while (remaining.length > 0) {
-      if (pr >= 4) {
+    while (pr < 4) {
+      const cap = caps[pr]
+      if (wordIndices.length > cap) {
         return false
       }
 
-      const cap = caps[pr]
       const gap = row.length > 0 ? 1 : 0
-      const avail = cap - used - gap
+      const needed = gap + wordIndices.length
+      const avail = cap - used
 
-      if (avail <= 0) {
-        flush()
-        continue
+      if (needed <= avail) {
+        row.push(wordIndices)
+        used += needed
+        return true
       }
 
-      if (remaining.length <= avail) {
-        row.push(remaining)
-        used += gap + remaining.length
-        remaining = []
-      } else {
-        row.push(remaining.slice(0, avail))
-        used += gap + avail
-        remaining = remaining.slice(avail)
-        flush()
-      }
+      flush()
     }
 
-    return true
+    return false
   }
 
   for (const word of words) {
@@ -181,6 +176,9 @@ export default function PuzzleBoard({
   answer,
   guessedLetters,
   category,
+  pendingRevealIndices,
+  revealedTileIndices,
+  onRevealTile,
 }: PuzzleBoardProps) {
   const revealed = revealCharacters(answer, guessedLetters)
   const words = wordIndexGroups(answer)
@@ -214,6 +212,12 @@ export default function PuzzleBoard({
               const isLetterCell = /[A-Z]/.test(original)
               const displayLetter = revealed[answerIndex]
               const isHiddenLetter = isLetterCell && displayLetter === ''
+              const isPendingReveal = pendingRevealIndices.includes(answerIndex)
+              const hasBeenClicked = revealedTileIndices.includes(answerIndex)
+              const canShowLetter =
+                !isLetterCell || isPendingReveal
+                  ? false
+                  : !isHiddenLetter && hasBeenClicked
 
               return (
                 <div
@@ -222,20 +226,47 @@ export default function PuzzleBoard({
                     'tile-wof',
                     'tile-wof-puzzle',
                     isLetterCell
-                      ? isHiddenLetter
-                        ? 'tile-wof-puzzle-hidden'
-                        : 'tile-wof-puzzle-revealed'
+                      ? isPendingReveal
+                        ? 'tile-wof-puzzle-pending'
+                        : canShowLetter
+                          ? 'tile-wof-puzzle-revealed'
+                          : 'tile-wof-puzzle-hidden'
                       : 'tile-wof-punct',
                   ].join(' ')}
+                  onClick={
+                    isPendingReveal
+                      ? () => {
+                          onRevealTile(answerIndex)
+                        }
+                      : undefined
+                  }
+                  role={isPendingReveal ? 'button' : undefined}
+                  tabIndex={isPendingReveal ? 0 : undefined}
+                  onKeyDown={
+                    isPendingReveal
+                      ? (event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            onRevealTile(answerIndex)
+                          }
+                        }
+                      : undefined
+                  }
                   aria-label={
                     isLetterCell
-                      ? isHiddenLetter
-                        ? 'Hidden letter'
-                        : `Letter ${displayLetter}`
+                      ? isPendingReveal
+                        ? 'Pending reveal tile'
+                        : canShowLetter
+                          ? `Letter ${displayLetter}`
+                          : 'Hidden letter'
                       : `Symbol ${original}`
                   }
                 >
-                  {isLetterCell ? displayLetter : original}
+                  {isLetterCell
+                    ? canShowLetter
+                        ? displayLetter
+                        : ''
+                    : original}
                 </div>
               )
             })}

@@ -57,10 +57,10 @@ export const isPuzzleSolved = (
 const countOccurrences = (answer: string, letter: string): number =>
   answer.split('').filter((char) => char === letter).length
 
-const buildRound = (puzzle: Puzzle): ActiveRound => ({
+const buildRound = (puzzle: Puzzle, currentPlayerIndex = 0): ActiveRound => ({
   puzzle,
   guessedLetters: [],
-  currentPlayerIndex: 0,
+  currentPlayerIndex,
   lastActionMessage: 'Round started. Choose an action.',
 })
 
@@ -292,10 +292,21 @@ export const goToNextRound = (state: GameState): GameState => {
   }
 
   const nextPuzzle = state.puzzles[nextRoundNumber - 1]
+  const lastResult = state.roundResults[state.roundResults.length - 1]
+  const nextStartingPlayerIndex =
+    lastResult?.winnerPlayerId != null
+      ? state.config.players.findIndex(
+          (player) => player.id === lastResult.winnerPlayerId,
+        )
+      : 0
+
   return {
     ...state,
     phase: 'inRound',
     currentRoundNumber: nextRoundNumber,
-    activeRound: buildRound(nextPuzzle),
+    activeRound: buildRound(
+      nextPuzzle,
+      nextStartingPlayerIndex >= 0 ? nextStartingPlayerIndex : 0,
+    ),
   }
 }

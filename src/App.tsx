@@ -108,6 +108,88 @@ function App() {
     [gameState],
   )
 
+  const exitGame = () => {
+    setGameState(null)
+    setSolveInput('')
+  }
+
+  const isImmersivePlaySession = activeView === 'play' && gameState !== null
+
+  if (isImmersivePlaySession) {
+    return (
+      <div
+        className="game-play-root"
+        role="application"
+        aria-label="Wheel of Fortune puzzle game"
+      >
+        <button type="button" className="exit-game-btn" onClick={exitGame}>
+          Exit game
+        </button>
+        <div className="game-play-inner">
+          {gameState && activeRound && gameState.phase === 'inRound' && (
+            <section className="game-layout game-layout--immersive">
+              <PuzzleBoard
+                answer={activeRound.puzzle.answer}
+                guessedLetters={activeRound.guessedLetters}
+                category={activeRound.puzzle.category}
+              />
+              <GamePanel
+                players={gameState.config.players}
+                currentPlayerIndex={activeRound.currentPlayerIndex}
+                roundNumber={gameState.currentRoundNumber}
+                maxRounds={gameState.config.maxRounds}
+                message={activeRound.lastActionMessage}
+                solveAttempt={solveInput}
+                onSolveAttemptChange={setSolveInput}
+                onSubmitSolve={submitSolve}
+                onPassTurn={() => setGameState(passTurn(gameState))}
+                onFinishRoundWithoutSolve={() =>
+                  setGameState(finishRoundWithoutSolve(gameState))
+                }
+              />
+              <LetterKeyboard
+                guessedLetters={activeRound.guessedLetters}
+                onPickConsonant={submitConsonant}
+                onPickVowel={submitVowel}
+              />
+            </section>
+          )}
+
+          {gameState?.phase === 'roundComplete' && latestRound && (
+            <RoundSummary
+              result={latestRound}
+              players={gameState.config.players}
+              canAdvance={gameState.currentRoundNumber < gameState.config.maxRounds}
+              onAdvance={() => setGameState(goToNextRound(gameState))}
+            />
+          )}
+
+          {gameState?.phase === 'gameComplete' && (
+            <section className="panel summary game-complete-panel">
+              <h2>Game Complete</h2>
+              <p>All rounds are complete.</p>
+              <ul className="result-list">
+                {gameState.roundResults.map((result) => {
+                  const winner = gameState.config.players.find(
+                    (player) => player.id === result.winnerPlayerId,
+                  )
+                  return (
+                    <li key={`round-result-${result.roundNumber}`}>
+                      Round {result.roundNumber}: {winner ? winner.name : 'No winner'}
+                    </li>
+                  )
+                })}
+              </ul>
+              <button type="button" onClick={exitGame}>
+                Back to menu
+              </button>
+            </section>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <main className="app-shell">
       <aside className="sidebar panel">
@@ -201,66 +283,6 @@ function App() {
               Start Game
             </button>
             <p className="muted">Loaded puzzles: {puzzles.length}</p>
-          </section>
-        )}
-
-        {activeView === 'play' && gameState && activeRound && gameState.phase === 'inRound' && (
-          <section className="game-layout">
-            <PuzzleBoard
-              answer={activeRound.puzzle.answer}
-              guessedLetters={activeRound.guessedLetters}
-              category={activeRound.puzzle.category}
-            />
-            <GamePanel
-              players={gameState.config.players}
-              currentPlayerIndex={activeRound.currentPlayerIndex}
-              roundNumber={gameState.currentRoundNumber}
-              maxRounds={gameState.config.maxRounds}
-              message={activeRound.lastActionMessage}
-              solveAttempt={solveInput}
-              onSolveAttemptChange={setSolveInput}
-              onSubmitSolve={submitSolve}
-              onPassTurn={() => setGameState(passTurn(gameState))}
-              onFinishRoundWithoutSolve={() =>
-                setGameState(finishRoundWithoutSolve(gameState))
-              }
-            />
-            <LetterKeyboard
-              guessedLetters={activeRound.guessedLetters}
-              onPickConsonant={submitConsonant}
-              onPickVowel={submitVowel}
-            />
-          </section>
-        )}
-
-        {activeView === 'play' && gameState?.phase === 'roundComplete' && latestRound && (
-          <RoundSummary
-            result={latestRound}
-            players={gameState.config.players}
-            canAdvance={gameState.currentRoundNumber < gameState.config.maxRounds}
-            onAdvance={() => setGameState(goToNextRound(gameState))}
-          />
-        )}
-
-        {activeView === 'play' && gameState?.phase === 'gameComplete' && (
-          <section className="panel summary">
-            <h2>Game Complete</h2>
-            <p>All rounds are complete.</p>
-            <ul className="result-list">
-              {gameState.roundResults.map((result) => {
-                const winner = gameState.config.players.find(
-                  (player) => player.id === result.winnerPlayerId,
-                )
-                return (
-                  <li key={`round-result-${result.roundNumber}`}>
-                    Round {result.roundNumber}: {winner ? winner.name : 'No winner'}
-                  </li>
-                )
-              })}
-            </ul>
-            <button type="button" onClick={() => setGameState(null)}>
-              Start New Game
-            </button>
           </section>
         )}
       </section>

@@ -228,10 +228,10 @@ button:disabled {
 }
 
 .puzzle-card {
-  border: 1px solid #d9dbe5;
+  border: 1px solid #c8d9ec;
   border-radius: 0.65rem;
   padding: 0.85rem;
-  background: #fcfdff;
+  background: #f0f7ff;
   display: grid;
   gap: 0.65rem;
 }
@@ -239,7 +239,7 @@ button:disabled {
 .puzzle-card.dragging {
   opacity: 0.65;
   border-color: #1e4db7;
-  background: #eef3ff;
+  background: #e3f0ff;
 }
 
 .puzzle-card h3 {
@@ -331,4 +331,133 @@ button.danger {
   .sidebar {
     position: static;
   }
+}
+
+/* Fullscreen immersive play session */
+.game-play-root {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(30, 77, 183, 0.35), transparent),
+    radial-gradient(ellipse 80% 50% at 100% 100%, rgba(126, 31, 162, 0.2), transparent),
+    linear-gradient(165deg, #0c1018 0%, #141b2a 45%, #0a0e14 100%);
+  color: #e8eaef;
+}
+
+.game-play-inner {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+  padding: 4.25rem 1.25rem 2.5rem;
+  display: grid;
+  gap: 1.25rem;
+  align-content: start;
+}
+
+.game-play-root .panel {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  color: #e8eaef;
+}
+
+.game-play-root h1,
+.game-play-root h2,
+.game-play-root h3 {
+  color: #f2f4f8;
+}
+
+.game-play-root .category,
+.game-play-root .muted,
+.game-play-root .drag-hint,
+.game-play-root .turn-label {
+  color: #b4bac8;
+}
+
+.game-play-root .message {
+  color: #d8dce6;
+}
+
+.game-play-root input,
+.game-play-root select {
+  background: rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f2f4f8;
+}
+
+.game-play-root .player-chip {
+  background: rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #e8eaef;
+}
+
+.game-play-root .player-chip.active {
+  background: rgba(255, 143, 0, 0.2);
+  border-color: #ff8f00;
+  color: #fff8e1;
+}
+
+.game-play-root .tile.letter {
+  background: rgba(31, 122, 140, 0.35);
+  border-color: #4fd1c5;
+  color: #f2f4f8;
+}
+
+.game-play-root .tile.symbol {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #b4bac8;
+}
+
+.game-play-root .letter-btn.vowel {
+  background: #6a1b9a;
+  border-color: #9c4dcc;
+}
+
+.game-play-root .letter-btn.consonant {
+  background: #1565c0;
+  border-color: #42a5f5;
+}
+
+.game-layout--immersive {
+  gap: 1.25rem;
+}
+
+.exit-game-btn {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 310;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  padding: 0.55rem 1rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+.exit-game-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+.exit-game-btn:focus-visible {
+  outline: 2px solid #7cb3ff;
+  outline-offset: 2px;
+}
+
+.game-complete-panel .result-list {
+  color: #e8eaef;
 }

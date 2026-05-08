@@ -196,15 +196,22 @@ export const buyVowel = (
   ]
 }
 
-export const passTurn = (state: GameState): GameState =>
-  withMessage(state, 'Turn passed.', true)
+export const passTurn = (state: GameState): GameState => {
+  if (state.phase !== 'inRound' || !state.activeRound) {
+    return state
+  }
+  return withMessage(state, 'Turn passed.', true)
+}
 
 export const attemptSolve = (
   state: GameState,
   proposal: string,
 ): [GameState, ActionOutcome] => {
-  if (state.phase !== 'inRound' || !state.activeRound) {
+  if (!state.activeRound) {
     return [state, { success: false, message: 'No active round.' }]
+  }
+  if (state.phase !== 'inRound') {
+    return [state, { success: false, message: 'Cannot solve right now.' }]
   }
 
   const normalizedProposal = normalizeAnswer(proposal)
@@ -230,7 +237,7 @@ export const attemptSolve = (
   return [
     {
       ...state,
-      phase: 'roundComplete',
+      phase: 'roundSolvedAwaitingAdvance',
       roundResults: [...state.roundResults, result],
       activeRound: {
         ...state.activeRound,
@@ -272,7 +279,7 @@ export const finishRoundWithoutSolve = (state: GameState): GameState => {
 }
 
 export const goToNextRound = (state: GameState): GameState => {
-  if (state.phase !== 'roundComplete') {
+  if (state.phase !== 'roundComplete' && state.phase !== 'roundSolvedAwaitingAdvance') {
     return state
   }
 

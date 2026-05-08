@@ -131,29 +131,131 @@ button:disabled {
   color: #4f5668;
 }
 
-.board {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(48px, 1fr));
-  gap: 0.4rem;
+/* Wheel of Fortune–style puzzle board */
+.puzzle-board-heading {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.tile {
-  min-height: 52px;
-  border-radius: 0.35rem;
-  display: grid;
-  place-items: center;
-  font-size: 1.2rem;
+.puzzle-board-panel {
+  padding: 0;
+  overflow: hidden;
+}
+
+.puzzle-board-panel .board-grid-wof {
+  padding: 1rem 0.75rem 1.25rem;
+  background: linear-gradient(180deg, #1a1d24 0%, #12151c 50%, #0e1016 100%);
+  border-radius: 0 0 0.65rem 0.65rem;
+}
+
+.wof-category-strip {
+  background: linear-gradient(180deg, #1a56c4 0%, #1240a8 45%, #0d3280 100%);
+  color: #ffe082;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  font-weight: 800;
+  font-size: clamp(0.8rem, 2.5vw, 1rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+/*
+ * TV grid: 12 / 14 / 14 / 12 tiles. All tiles identical portrait rectangles (h > w).
+ * Rows are centered; middle rows are 2 tiles wider → 1 tile further left & right vs row 1 & 4.
+ */
+.board-grid-wof {
+  --wof-tile-w: clamp(30px, 4.25vw, 42px);
+  --wof-tile-h: clamp(44px, 6.1vw, 58px);
+  --wof-tile-gap: 4px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--wof-tile-gap);
+}
+
+.board-fixed-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--wof-tile-gap);
+  flex: 0 0 auto;
+}
+
+.tile-wof {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  width: var(--wof-tile-w);
+  height: var(--wof-tile-h);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Impact, 'Arial Narrow', 'Franklin Gothic Bold', 'Helvetica Neue', Arial,
+    sans-serif;
   font-weight: 700;
+  line-height: 1;
+  text-transform: uppercase;
+  user-select: none;
 }
 
-.tile.letter {
-  border: 2px solid #1f7a8c;
-  background: #f2fbfd;
+/* Unused board: solid green + centered circle “logo” */
+.tile-wof-green {
+  background: #0d8f4d;
+  border: 1px solid #0a6e3c;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
-.tile.symbol {
-  border: 1px dashed #bfc5d0;
-  background: #f7f8fb;
+.wof-tile-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.wof-tile-logo-svg {
+  width: 58%;
+  height: 58%;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
+}
+
+/* Puzzle cells: white; letters reveal when guessed */
+.tile-wof-puzzle {
+  border: 1px solid #b8bcc4;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.tile-wof-puzzle-hidden {
+  background: #ffffff;
+  color: transparent;
+}
+
+.tile-wof-puzzle-revealed {
+  background: #ffffff;
+  color: #111;
+  font-size: min(1.4rem, calc(var(--wof-tile-w) * 0.78));
+}
+
+.tile-wof-punct {
+  background: #ffffff;
+  color: #111;
+  font-size: min(1.15rem, calc(var(--wof-tile-w) * 0.68));
+  padding: 0;
+  border: 1px solid #b8bcc4;
 }
 
 .keyboard {
@@ -202,9 +304,188 @@ button:disabled {
   margin: 0.25rem 0;
 }
 
-.actions {
-  display: grid;
+/* Round controls — prominent player roster */
+.game-panel-round-meta {
+  margin: 0 0 0.75rem;
+  font-weight: 600;
+  color: #4f5668;
+}
+
+.player-roster {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: stretch;
   gap: 0.5rem;
+  margin: 0 0 1rem;
+}
+
+.player-roster-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.85rem;
+  min-width: 6.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #d3d5df;
+  background: #f8f9fc;
+}
+
+.player-roster-item--current {
+  border-color: #1e4db7;
+  background: linear-gradient(180deg, #eef3ff 0%, #e3eaff 100%);
+  box-shadow: 0 2px 8px rgba(30, 77, 183, 0.12);
+}
+
+.player-roster-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #1c2233;
+  letter-spacing: 0.02em;
+}
+
+.player-roster-item--current .player-roster-name {
+  font-size: 1.28rem;
+  color: #0d1f66;
+}
+
+.player-roster-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #1e4db7;
+  background: rgba(30, 77, 183, 0.12);
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.25rem;
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.game-panel-status {
+  font-size: 0.95rem;
+}
+
+.solve-outcome-banner {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.5rem;
+  margin-top: 0.85rem;
+  margin-bottom: 0;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid;
+}
+
+.game-panel .solve-outcome-banner {
+  margin-top: 1rem;
+}
+
+.solve-outcome-banner-text {
+  margin: 0;
+  font-weight: 600;
+  line-height: 1.35;
+  flex: 1;
+}
+
+.solve-outcome-banner--success {
+  background: #e8f5e9;
+  border-color: #66bb6a;
+  color: #1b5e20;
+}
+
+.solve-outcome-banner--error {
+  background: #ffebee;
+  border-color: #e57373;
+  color: #b71c1c;
+}
+
+.solve-outcome-banner-dismiss {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.85rem;
+  background: rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  color: inherit;
+  border-radius: 0.35rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.solve-outcome-banner-dismiss:hover {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.next-round-btn {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 310;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(30, 77, 183, 0.85);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  padding: 0.55rem 1rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+.next-round-btn:hover {
+  background: rgba(50, 100, 200, 0.95);
+}
+
+.next-round-btn:focus-visible {
+  outline: 2px solid #a8c7ff;
+  outline-offset: 2px;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.actions > input[type='text'] {
+  width: 100%;
+}
+
+.action-buttons-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.action-buttons-row button {
+  flex: 1 1 0;
+  min-width: min(100%, 8.5rem);
+  white-space: nowrap;
+}
+
+.action-buttons-row .btn-grey {
+  background: #6b7280;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.action-buttons-row .btn-grey:hover:not(:disabled) {
+  background: #5c6370;
+  border-color: #3f4654;
+}
+
+.action-buttons-row .btn-grey:focus-visible {
+  outline: 2px solid #9ca3af;
+  outline-offset: 2px;
 }
 
 .manage-view {
@@ -386,6 +667,55 @@ button.danger {
   color: #d8dce6;
 }
 
+.game-play-root .player-roster-item {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.game-play-root .player-roster-name {
+  color: #e8eaef;
+}
+
+.game-play-root .player-roster-item--current {
+  border-color: #60a5fa;
+  background: rgba(37, 99, 235, 0.25);
+}
+
+.game-play-root .player-roster-item--current .player-roster-name {
+  color: #fff;
+}
+
+.game-play-root .player-roster-badge {
+  color: #bfdbfe;
+  background: rgba(37, 99, 235, 0.35);
+}
+
+.game-play-root .game-panel-round-meta {
+  color: #b4bac8;
+}
+
+.game-play-root .solve-outcome-banner--success {
+  background: rgba(46, 125, 50, 0.3);
+  border-color: #81c784;
+  color: #c8e6c9;
+}
+
+.game-play-root .solve-outcome-banner--error {
+  background: rgba(198, 40, 40, 0.3);
+  border-color: #ef9a9a;
+  color: #ffcdd2;
+}
+
+.game-play-root .solve-outcome-banner-dismiss {
+  color: #e8eaef;
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.game-play-root .solve-outcome-banner-dismiss:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
+
 .game-play-root input,
 .game-play-root select {
   background: rgba(0, 0, 0, 0.25);
@@ -405,16 +735,33 @@ button.danger {
   color: #fff8e1;
 }
 
-.game-play-root .tile.letter {
-  background: rgba(31, 122, 140, 0.35);
-  border-color: #4fd1c5;
-  color: #f2f4f8;
+.game-play-root .puzzle-board-panel .board-grid-wof {
+  background: linear-gradient(180deg, #0a0c10 0%, #12161f 45%, #080a0e 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
-.game-play-root .tile.symbol {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #b4bac8;
+.game-play-root .wof-category-strip {
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 40%, #1e40af 100%);
+  color: #fef08a;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.game-play-root .tile-wof-green {
+  background: #0a7a43;
+  border-color: #065c32;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.game-play-root .tile-wof-puzzle-hidden,
+.game-play-root .tile-wof-puzzle-revealed,
+.game-play-root .tile-wof-punct {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+.game-play-root .tile-wof-puzzle-revealed,
+.game-play-root .tile-wof-punct {
+  color: #0f172a;
 }
 
 .game-play-root .letter-btn.vowel {
@@ -425,6 +772,17 @@ button.danger {
 .game-play-root .letter-btn.consonant {
   background: #1565c0;
   border-color: #42a5f5;
+}
+
+.game-play-root .action-buttons-row .btn-grey {
+  background: #525965;
+  border-color: #3d434c;
+  color: #f3f4f6;
+}
+
+.game-play-root .action-buttons-row .btn-grey:hover:not(:disabled) {
+  background: #656b76;
+  border-color: #4b5260;
 }
 
 .game-layout--immersive {

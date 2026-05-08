@@ -24,7 +24,11 @@ export interface ActiveRound {
   lastActionMessage: string
 }
 
-export type GamePhase = 'inRound' | 'roundComplete' | 'gameComplete'
+export type GamePhase =
+  | 'inRound'
+  | 'roundSolvedAwaitingAdvance'
+  | 'roundComplete'
+  | 'gameComplete'
 
 export interface GameConfig {
   players: Player[]

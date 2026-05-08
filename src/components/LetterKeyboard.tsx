@@ -3,12 +3,14 @@ const VOWELS = new Set(['A', 'E', 'I', 'O', 'U'])
 
 interface LetterKeyboardProps {
   guessedLetters: string[]
+  disabled?: boolean
   onPickConsonant: (letter: string) => void
   onPickVowel: (letter: string) => void
 }
 
 export default function LetterKeyboard({
   guessedLetters,
+  disabled = false,
   onPickConsonant,
   onPickVowel,
 }: LetterKeyboardProps) {
@@ -26,7 +28,7 @@ export default function LetterKeyboard({
               key={letter}
               type="button"
               className={`letter-btn ${kind}`}
-              disabled={guessed}
+              disabled={disabled || guessed}
               onClick={() =>
                 isVowel ? onPickVowel(letter) : onPickConsonant(letter)
               }

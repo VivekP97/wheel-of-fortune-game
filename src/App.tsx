@@ -35,6 +35,10 @@ function App() {
     'Player 4',
   ])
   const [solveInput, setSolveInput] = useState('')
+  const [solveBanner, setSolveBanner] = useState<{
+    variant: 'success' | 'error'
+    message: string
+  } | null>(null)
 
   useEffect(() => {
     void (async () => {
@@ -72,6 +76,7 @@ function App() {
       })
       setGameState(nextState)
       setSolveInput('')
+      setSolveBanner(null)
       setLoadError('')
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Could not start game.')
@@ -98,9 +103,14 @@ function App() {
     if (!gameState) {
       return
     }
-    const [next] = attemptSolve(gameState, solveInput)
+    const [next, outcome] = attemptSolve(gameState, solveInput)
     setSolveInput('')
     setGameState(next)
+    if (next.phase === 'roundSolvedAwaitingAdvance' && outcome.success) {
+      setSolveBanner({ variant: 'success', message: outcome.message })
+    } else if (!outcome.success) {
+      setSolveBanner({ variant: 'error', message: outcome.message })
+    }
   }
 
   const latestRound = useMemo(
@@ -111,11 +121,20 @@ function App() {
   const exitGame = () => {
     setGameState(null)
     setSolveInput('')
+    setSolveBanner(null)
   }
 
   const isImmersivePlaySession = activeView === 'play' && gameState !== null
 
   if (isImmersivePlaySession) {
+    const showPlayBoard =
+      gameState &&
+      activeRound &&
+      (gameState.phase === 'inRound' ||
+        gameState.phase === 'roundSolvedAwaitingAdvance')
+    const roundControlsLocked = gameState?.phase === 'roundSolvedAwaitingAdvance'
+    const letterInputLocked = gameState?.phase !== 'inRound'
+
     return (
       <div
         className="game-play-root"
@@ -125,8 +144,22 @@ function App() {
         <button type="button" className="exit-game-btn" onClick={exitGame}>
           Exit game
         </button>
+        {gameState?.phase === 'roundSolvedAwaitingAdvance' && (
+          <button
+            type="button"
+            className="next-round-btn"
+            onClick={() => {
+              setSolveBanner(null)
+              setGameState(goToNextRound(gameState))
+            }}
+          >
+            {gameState.currentRoundNumber < gameState.config.maxRounds
+              ? 'Next round'
+              : 'View results'}
+          </button>
+        )}
         <div className="game-play-inner">
-          {gameState && activeRound && gameState.phase === 'inRound' && (
+          {showPlayBoard && (
             <section className="game-layout game-layout--immersive">
               <PuzzleBoard
                 answer={activeRound.puzzle.answer}
@@ -139,7 +172,11 @@ function App() {
                 roundNumber={gameState.currentRoundNumber}
                 maxRounds={gameState.config.maxRounds}
                 message={activeRound.lastActionMessage}
+                hideStatusMessage={solveBanner !== null}
+                roundControlsLocked={roundControlsLocked}
                 solveAttempt={solveInput}
+                solveBanner={solveBanner}
+                onDismissSolveBanner={() => setSolveBanner(null)}
                 onSolveAttemptChange={setSolveInput}
                 onSubmitSolve={submitSolve}
                 onPassTurn={() => setGameState(passTurn(gameState))}
@@ -149,6 +186,7 @@ function App() {
               />
               <LetterKeyboard
                 guessedLetters={activeRound.guessedLetters}
+                disabled={letterInputLocked}
                 onPickConsonant={submitConsonant}
                 onPickVowel={submitVowel}
               />

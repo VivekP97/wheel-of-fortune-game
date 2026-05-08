@@ -512,6 +512,62 @@ button:disabled {
   gap: 0.75rem;
 }
 
+.sound-lab {
+  display: grid;
+  gap: 1rem;
+}
+
+.sound-lab-mute-btn {
+  justify-self: start;
+  border-color: #4b5563;
+  background: #4b5563;
+}
+
+.sound-lab-assignments {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.sound-category {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.sound-category h3 {
+  margin: 0;
+  font-size: 1.02rem;
+}
+
+.sound-grid {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.sound-card {
+  border: 1px solid #d3d9e6;
+  border-radius: 0.6rem;
+  padding: 0.75rem;
+  background: #f7faff;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.sound-card strong {
+  font-size: 1rem;
+}
+
+.sound-card p {
+  margin: 0;
+  color: #4f5668;
+  font-size: 0.9rem;
+}
+
+.sound-card button {
+  justify-self: start;
+}
+
 .manage-feedback {
   margin: 0;
 }
@@ -825,12 +881,40 @@ button.danger {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
+.mute-sound-btn {
+  position: fixed;
+  top: 3.6rem;
+  left: 1rem;
+  z-index: 310;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  backdrop-filter: blur(8px);
+  padding: 0.45rem 0.85rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
 .exit-game-btn:hover {
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.55);
 }
 
+.mute-sound-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
 .exit-game-btn:focus-visible {
+  outline: 2px solid #7cb3ff;
+  outline-offset: 2px;
+}
+
+.mute-sound-btn:focus-visible {
   outline: 2px solid #7cb3ff;
   outline-offset: 2px;
 }

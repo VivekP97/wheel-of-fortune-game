@@ -1,10 +1,18 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import GamePanel from './components/GamePanel'
 import LetterKeyboard from './components/LetterKeyboard'
 import ManageGameView from './components/ManageGameView'
 import PuzzleBoard from './components/PuzzleBoard'
 import RoundSummary from './components/RoundSummary'
+import SoundLabPanel from './components/SoundLabPanel'
+import {
+  DEFAULT_SOUND_PROFILE,
+  GameSoundManager,
+  type SoundCategory,
+  type SoundProfile,
+} from './audio/soundManager'
+import { loadSoundSettings, saveSoundSettings } from './data/soundSettings'
 import { loadPuzzles } from './data/loadPuzzles'
 import {
   DEFAULT_ROUNDS,
@@ -22,7 +30,7 @@ import { getLatestRoundResult } from './game/round'
 import type { GameState, Player, Puzzle } from './types/game'
 
 function App() {
-  const [activeView, setActiveView] = useState<'play' | 'manage'>('play')
+  const [activeView, setActiveView] = useState<'play' | 'manage' | 'sounds'>('play')
   const [puzzles, setPuzzles] = useState<Puzzle[]>([])
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [loadError, setLoadError] = useState('')
@@ -41,6 +49,10 @@ function App() {
   } | null>(null)
   const [pendingRevealIndices, setPendingRevealIndices] = useState<number[]>([])
   const [revealedTileIndices, setRevealedTileIndices] = useState<number[]>([])
+  const [isSoundMuted, setIsSoundMuted] = useState(false)
+  const [soundProfile, setSoundProfile] = useState<SoundProfile>(DEFAULT_SOUND_PROFILE)
+  const [soundSettingsLoaded, setSoundSettingsLoaded] = useState(false)
+  const soundManagerRef = useRef<GameSoundManager | null>(null)
 
   useEffect(() => {
     void (async () => {
@@ -56,6 +68,38 @@ function App() {
     })()
   }, [])
 
+  useEffect(() => {
+    void (async () => {
+      try {
+        const loaded = await loadSoundSettings()
+        setSoundProfile(loaded.soundProfile)
+        setIsSoundMuted(loaded.muted)
+      } catch {
+        // Keep defaults when settings file is missing/unreadable.
+      } finally {
+        setSoundSettingsLoaded(true)
+      }
+    })()
+  }, [])
+
+  useEffect(() => {
+    if (!soundManagerRef.current) {
+      soundManagerRef.current = new GameSoundManager()
+    }
+    soundManagerRef.current.setProfile(soundProfile)
+    soundManagerRef.current.setMuted(isSoundMuted)
+  }, [isSoundMuted, soundProfile])
+
+  useEffect(() => {
+    if (!soundSettingsLoaded) {
+      return
+    }
+    void saveSoundSettings({
+      soundProfile,
+      muted: isSoundMuted,
+    })
+  }, [isSoundMuted, soundProfile, soundSettingsLoaded])
+
   const activeRound = gameState?.activeRound ?? null
   const hasPendingReveals = pendingRevealIndices.length > 0
 
@@ -63,6 +107,29 @@ function App() {
     setPendingRevealIndices([])
     setRevealedTileIndices([])
   }
+
+  const playRevealTone = () => {
+    soundManagerRef.current?.playLetterReveal()
+  }
+
+  const playFailureTone = () => {
+    soundManagerRef.current?.playSolveFailure()
+  }
+
+  const playSuccessTone = () => {
+    soundManagerRef.current?.playSolveSuccess()
+  }
+
+  const previewSound = (soundId: string) => {
+    soundManagerRef.current?.playPreview(soundId)
+  }
+
+  const soundsByCategory: Record<SoundCategory, ReturnType<GameSoundManager['getSoundsByCategory']>> =
+    {
+      bells: soundManagerRef.current?.getSoundsByCategory('bells') ?? [],
+      success: soundManagerRef.current?.getSoundsByCategory('success') ?? [],
+      failure: soundManagerRef.current?.getSoundsByCategory('failure') ?? [],
+    }
 
   const collectMatchingLetterIndices = (answer: string, letter: string): number[] => {
     const hits: number[] = []
@@ -126,6 +193,7 @@ function App() {
     )
     if (hits.length > 0) {
       setPendingRevealIndices((current) => [...current, ...hits])
+      void playRevealTone()
     }
     setGameState(next)
   }
@@ -142,6 +210,7 @@ function App() {
     )
     if (hits.length > 0) {
       setPendingRevealIndices((current) => [...current, ...hits])
+      void playRevealTone()
     }
     setGameState(next)
   }
@@ -155,6 +224,7 @@ function App() {
         variant: 'error',
         message: 'Reveal all blue tiles before continuing.',
       })
+      playFailureTone()
       return
     }
     const [next, outcome] = attemptSolve(gameState, solveInput)
@@ -165,8 +235,10 @@ function App() {
       setPendingRevealIndices([])
       setRevealedTileIndices(collectAllLetterIndices(answer))
       setSolveBanner({ variant: 'success', message: outcome.message })
+      playSuccessTone()
     } else if (!outcome.success) {
       setSolveBanner({ variant: 'error', message: outcome.message })
+      playFailureTone()
     }
   }
 
@@ -202,6 +274,14 @@ function App() {
       >
         <button type="button" className="exit-game-btn" onClick={exitGame}>
           Exit game
+        </button>
+        <button
+          type="button"
+          className="mute-sound-btn"
+          onClick={() => setIsSoundMuted((current) => !current)}
+          aria-pressed={isSoundMuted}
+        >
+          {isSoundMuted ? 'Unmute sounds' : 'Mute sounds'}
         </button>
         {gameState?.phase === 'roundSolvedAwaitingAdvance' && (
           <button
@@ -330,6 +410,13 @@ function App() {
         >
           Manage Game
         </button>
+        <button
+          type="button"
+          className={activeView === 'sounds' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => setActiveView('sounds')}
+        >
+          Sounds
+        </button>
       </aside>
 
       <section className="main-view">
@@ -351,6 +438,22 @@ function App() {
               setGameState(null)
               setLoadError('')
             }}
+          />
+        )}
+
+        {activeView === 'sounds' && (
+          <SoundLabPanel
+            soundProfile={soundProfile}
+            isMuted={isSoundMuted}
+            soundsByCategory={soundsByCategory}
+            onToggleMute={() => setIsSoundMuted((current) => !current)}
+            onPreview={previewSound}
+            onChangeProfile={(next) =>
+              setSoundProfile((current) => ({
+                ...current,
+                ...next,
+              }))
+            }
           />
         )}
 

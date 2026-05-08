@@ -1,0 +1,8 @@
+{
+  "soundProfile": {
+    "letterRevealId": "bell_soft",
+    "solveSuccessId": "success_chime",
+    "solveFailureId": "failure_buzz"
+  },
+  "muted": false
+}

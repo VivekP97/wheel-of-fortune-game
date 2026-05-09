@@ -58,6 +58,7 @@ function App() {
     'Player 2',
     'Player 3',
     'Player 4',
+    'Player 5',
   ])
   const [solveInput, setSolveInput] = useState('')
   const [solveBanner, setSolveBanner] = useState<{
@@ -739,7 +740,7 @@ function App() {
               </div>
             )}
             <label>
-              Number of players (1-4)
+              Number of players (1-5)
               <input
                 type="number"
                 min={MIN_PLAYERS}

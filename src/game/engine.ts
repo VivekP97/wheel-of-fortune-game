@@ -12,7 +12,7 @@ import type {
 const LETTER_REGEX = /^[A-Z]$/
 const VOWELS = new Set(['A', 'E', 'I', 'O', 'U'])
 
-export const MAX_PLAYERS = 4
+export const MAX_PLAYERS = 5
 export const MIN_PLAYERS = 1
 export const MIN_ROUNDS = 1
 export const DEFAULT_ROUNDS = 3

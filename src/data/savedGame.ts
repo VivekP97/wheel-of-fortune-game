@@ -78,7 +78,7 @@ export const parseSavedGamePayload = (value: unknown): SavedGamePayload => {
     players: cfg.players as Player[],
     maxRounds: cfg.maxRounds,
   }
-  if (config.players.length < 1 || config.players.length > 4) {
+  if (config.players.length < 1 || config.players.length > 5) {
     throw new Error('Invalid player count in save.')
   }
 

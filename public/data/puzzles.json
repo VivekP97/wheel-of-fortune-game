@@ -1,29 +1,144 @@
 {
   "puzzles": [
     {
-      "id": "puzzle-0035r",
-      "category": "What are you doing?",
-      "answer": "CITY LIBRARY"
-    },
-    {
-      "id": "puzzle-002r",
-      "category": "Food & Drink",
-      "answer": "BOARD GAME NIGHT"
-    },
-    {
-      "id": "puzzle-004",
+      "id": "puzzle-1",
       "category": "Phrase",
-      "answer": "FAMILY REUNION"
+      "answer": "FISH MARKET"
     },
     {
-      "id": "puzzle-0022",
-      "category": "Food",
-      "answer": "CHOCOLATE CAKE"
+      "id": "puzzle-2",
+      "category": "What are you doing?",
+      "answer": "LOOKING AT THE CHERRY BLOSSOMS"
     },
     {
-      "id": "puzzle-006",
+      "id": "puzzle-3",
       "category": "Food & Drink",
-      "answer": "SDFSFD"
+      "answer": "PINA COLADA"
+    },
+    {
+      "id": "puzzle-4",
+      "category": "Around the house",
+      "answer": "Empty whiskey bottle"
+    },
+    {
+      "id": "puzzle-5",
+      "category": "Places",
+      "answer": "TANGER OUTLETS"
+    },
+    {
+      "id": "puzzle-6",
+      "category": "Phrase",
+      "answer": "MANE SHOPPING KARAVA LAI JAO"
+    },
+    {
+      "id": "puzzle-7",
+      "category": "What are you doing?",
+      "answer": "NAPPING IN THE SUN"
+    },
+    {
+      "id": "puzzle-8",
+      "category": "Food & Drink",
+      "answer": "MOJITO"
+    },
+    {
+      "id": "puzzle-9",
+      "category": "Around the house",
+      "answer": "MAGGI PACKETS"
+    },
+    {
+      "id": "puzzle-10",
+      "category": "Places",
+      "answer": "REITMANS"
+    },
+    {
+      "id": "puzzle-11",
+      "category": "What are you doing?",
+      "answer": "MAKING HOMEMADE PIZZA"
+    },
+    {
+      "id": "puzzle-12",
+      "category": "Food & Drink",
+      "answer": "CHEESELESS PIZZA"
+    },
+    {
+      "id": "puzzle-13",
+      "category": "Place",
+      "answer": "MICHAEL KORS"
+    },
+    {
+      "id": "puzzle-14",
+      "category": "What are you doing?",
+      "answer": "GOING SHOPPING"
+    },
+    {
+      "id": "puzzle-15",
+      "category": "Food & Drink",
+      "answer": "JALFRAJI"
+    },
+    {
+      "id": "puzzle-16",
+      "category": "Places",
+      "answer": "COSTCO"
+    },
+    {
+      "id": "puzzle-17",
+      "category": "What are you doing?",
+      "answer": "SCROLLING THROUGH FACEBOOK"
+    },
+    {
+      "id": "puzzle-18",
+      "category": "Food & Drink",
+      "answer": "MYSORE MASALA DOSA"
+    },
+    {
+      "id": "puzzle-19",
+      "category": "Place",
+      "answer": "DOLLARAMA"
+    },
+    {
+      "id": "puzzle-20",
+      "category": "What are you doing?",
+      "answer": "TALKING ON THE PHONE"
+    },
+    {
+      "id": "puzzle-21",
+      "category": "Food & Drink",
+      "answer": "MEDU VADA"
+    },
+    {
+      "id": "puzzle-22",
+      "category": "Place",
+      "answer": "KITCHEN STUFF PLUS"
+    },
+    {
+      "id": "puzzle-23",
+      "category": "What are you doing?",
+      "answer": "PLAYING KORI"
+    },
+    {
+      "id": "puzzle-24",
+      "category": "Food & Drink",
+      "answer": "CORN ON THE COB"
+    },
+    {
+      "id": "puzzle-25",
+      "category": "Place",
+      "answer": "WINNERS"
+    },
+    {
+      "id": "puzzle-26",
+      "category": "What are you doing?",
+      "answer": "TAKING A PICTURE WITH THE GULABS"
+    },
+    {
+      "id": "puzzle-27",
+      "category": "Place",
+      "answer": "PANCHVATI"
+    },
+    {
+      "id": "puzzle-28",
+      "category": "What are you doing?",
+      "answer": "SNUGGLING IN A BLANKET"
     }
   ]
 }

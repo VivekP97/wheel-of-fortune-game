@@ -1,4 +1,5 @@
 import { Howl, Howler } from 'howler'
+import { playSound } from 'react-sounds'
 
 const SAMPLE_RATE = 44100
 
@@ -279,21 +280,27 @@ export class GameSoundManager {
     if (this.muted) {
       return
     }
-    this.playPreview(this.profile.letterRevealId)
+    void playSound('notification/info').catch(() => {
+      this.playPreview(this.profile.letterRevealId)
+    })
   }
 
   playSolveSuccess() {
     if (this.muted) {
       return
     }
-    this.playPreview(this.profile.solveSuccessId)
+    void playSound('notification/success').catch(() => {
+      this.playPreview(this.profile.solveSuccessId)
+    })
   }
 
   playSolveFailure() {
     if (this.muted) {
       return
     }
-    this.playPreview(this.profile.solveFailureId)
+    void playSound('ui/buzz').catch(() => {
+      this.playPreview(this.profile.solveFailureId)
+    })
   }
 
   getSoundsByCategory(category: SoundCategory): SoundOption[] {

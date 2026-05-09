@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import './App.css'
 import GamePanel from './components/GamePanel'
 import LetterKeyboard from './components/LetterKeyboard'
+import FinalPuzzleView from './components/FinalPuzzleView'
 import ManageGameView from './components/ManageGameView'
 import PuzzleBoard from './components/PuzzleBoard'
 import RoundSummary from './components/RoundSummary'
@@ -12,6 +13,7 @@ import {
   type SoundCategory,
   type SoundProfile,
 } from './audio/soundManager'
+import { loadFinalPuzzle } from './data/loadFinalPuzzle'
 import { loadSoundSettings, saveSoundSettings } from './data/soundSettings'
 import { loadPuzzles } from './data/loadPuzzles'
 import {
@@ -30,10 +32,15 @@ import { getLatestRoundResult } from './game/round'
 import type { GameState, Player, Puzzle } from './types/game'
 
 function App() {
-  const [activeView, setActiveView] = useState<'play' | 'manage' | 'sounds'>('play')
+  const [activeView, setActiveView] = useState<'play' | 'manage' | 'sounds' | 'final'>(
+    'play',
+  )
   const [puzzles, setPuzzles] = useState<Puzzle[]>([])
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [loadError, setLoadError] = useState('')
+  const [finalPuzzle, setFinalPuzzle] = useState<Puzzle | null>(null)
+  const [finalPuzzleError, setFinalPuzzleError] = useState('')
+  const [finalPuzzleSessionActive, setFinalPuzzleSessionActive] = useState(false)
   const [playerCount, setPlayerCount] = useState(3)
   const [roundCount, setRoundCount] = useState(DEFAULT_ROUNDS)
   const [playerNames, setPlayerNames] = useState<string[]>([
@@ -63,6 +70,21 @@ function App() {
       } catch (error) {
         setLoadError(
           error instanceof Error ? error.message : 'Unknown puzzle loading error.',
+        )
+      }
+    })()
+  }, [])
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const loaded = await loadFinalPuzzle()
+        setFinalPuzzle(loaded)
+        setFinalPuzzleError('')
+      } catch (error) {
+        setFinalPuzzle(null)
+        setFinalPuzzleError(
+          error instanceof Error ? error.message : 'Could not load final puzzle.',
         )
       }
     })()
@@ -255,6 +277,8 @@ function App() {
   }
 
   const isImmersivePlaySession = activeView === 'play' && gameState !== null
+  const isImmersiveFinalSession =
+    activeView === 'final' && finalPuzzleSessionActive && finalPuzzle !== null
 
   if (isImmersivePlaySession) {
     const showPlayBoard =
@@ -392,6 +416,44 @@ function App() {
     )
   }
 
+  if (isImmersiveFinalSession) {
+    return (
+      <div
+        className="game-play-root"
+        role="application"
+        aria-label="Wheel of Fortune final puzzle"
+      >
+        <button
+          type="button"
+          className="exit-game-btn"
+          onClick={() => setFinalPuzzleSessionActive(false)}
+        >
+          Exit to menu
+        </button>
+        <button
+          type="button"
+          className="mute-sound-btn"
+          onClick={() => setIsSoundMuted((current) => !current)}
+          aria-pressed={isSoundMuted}
+        >
+          {isSoundMuted ? 'Unmute sounds' : 'Mute sounds'}
+        </button>
+        <div className="game-play-inner">
+          <FinalPuzzleView
+            layout="immersive"
+            puzzle={finalPuzzle}
+            onExit={() => setFinalPuzzleSessionActive(false)}
+            isSoundMuted={isSoundMuted}
+            onToggleMute={() => setIsSoundMuted((current) => !current)}
+            playSuccessTone={playSuccessTone}
+            playFailureTone={playFailureTone}
+            playRevealTone={playRevealTone}
+          />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <main className="app-shell">
       <aside className="sidebar panel">
@@ -399,23 +461,42 @@ function App() {
         <button
           type="button"
           className={activeView === 'play' ? 'nav-btn active' : 'nav-btn'}
-          onClick={() => setActiveView('play')}
+          onClick={() => {
+            setActiveView('play')
+            setFinalPuzzleSessionActive(false)
+          }}
         >
           Play Game
         </button>
         <button
           type="button"
           className={activeView === 'manage' ? 'nav-btn active' : 'nav-btn'}
-          onClick={() => setActiveView('manage')}
+          onClick={() => {
+            setActiveView('manage')
+            setFinalPuzzleSessionActive(false)
+          }}
         >
           Manage Game
         </button>
         <button
           type="button"
           className={activeView === 'sounds' ? 'nav-btn active' : 'nav-btn'}
-          onClick={() => setActiveView('sounds')}
+          onClick={() => {
+            setActiveView('sounds')
+            setFinalPuzzleSessionActive(false)
+          }}
         >
           Sounds
+        </button>
+        <button
+          type="button"
+          className={activeView === 'final' ? 'nav-btn active' : 'nav-btn'}
+          onClick={() => {
+            setActiveView('final')
+            setFinalPuzzleSessionActive(false)
+          }}
+        >
+          Final Puzzle
         </button>
       </aside>
 
@@ -429,6 +510,32 @@ function App() {
         </header>
 
         {loadError && <p className="error-banner">{loadError}</p>}
+        {finalPuzzleError && activeView === 'final' && (
+          <p className="error-banner">{finalPuzzleError}</p>
+        )}
+        {activeView === 'final' && !finalPuzzle && !finalPuzzleError && (
+          <p className="muted">Loading final puzzle…</p>
+        )}
+
+        {activeView === 'final' && (
+          <section className="panel final-puzzle-menu">
+            <h2>Final Puzzle</h2>
+            <p>
+              TV-style bonus round: click to reveal <strong>R S T L N E</strong>, then pick{' '}
+              <strong>three consonants</strong> and <strong>one vowel</strong> and click to reveal
+              those matches, then one solve attempt. Puzzle:{' '}
+              <code>public/data/final-puzzle.json</code>.
+            </p>
+            <button
+              type="button"
+              className="final-puzzle-start-btn"
+              disabled={!finalPuzzle || Boolean(finalPuzzleError)}
+              onClick={() => setFinalPuzzleSessionActive(true)}
+            >
+              Start final puzzle
+            </button>
+          </section>
+        )}
 
         {activeView === 'manage' && (
           <ManageGameView

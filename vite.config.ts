@@ -9,6 +9,10 @@ const soundSettingsFilePath = path.resolve(
   process.cwd(),
   'public/data/sound-settings.json',
 )
+const finalPuzzleFilePath = path.resolve(
+  process.cwd(),
+  'public/data/final-puzzle.json',
+)
 
 const createJsonFileApiMiddleware = (
   filePath: string,
@@ -81,6 +85,14 @@ const puzzleApiPlugin = (): Plugin => ({
         soundSettingsFilePath,
         'Could not read sound settings file.',
         'Could not save sound settings file.',
+      ),
+    )
+    server.middlewares.use(
+      '/api/final-puzzle',
+      createJsonFileApiMiddleware(
+        finalPuzzleFilePath,
+        'Could not read final puzzle file.',
+        'Could not save final puzzle file.',
       ),
     )
   },

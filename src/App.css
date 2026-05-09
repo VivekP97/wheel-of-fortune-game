@@ -922,3 +922,155 @@ button.danger {
 .game-complete-panel .result-list {
   color: #e8eaef;
 }
+
+/* Final puzzle (menu mode — not immersive fixed controls) */
+.final-puzzle-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.final-puzzle-toolbar .exit-game-btn,
+.final-puzzle-toolbar .mute-sound-btn {
+  position: static;
+  top: auto;
+  left: auto;
+  z-index: auto;
+  background: #1f2937;
+  color: #f9fafb;
+  border: 1px solid #374151;
+  box-shadow: none;
+}
+
+.final-puzzle-toolbar .exit-game-btn:hover,
+.final-puzzle-toolbar .mute-sound-btn:hover {
+  background: #374151;
+  border-color: #4b5563;
+}
+
+.final-puzzle-banner {
+  margin-bottom: 1rem;
+}
+
+.final-puzzle-title {
+  margin: 0 0 0.35rem;
+}
+
+.final-puzzle-rules {
+  margin: 0;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.final-puzzle-progress {
+  margin: 0.75rem 0 0;
+  font-weight: 600;
+  color: #111827;
+}
+
+.final-puzzle-layout {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 960px) {
+  .final-puzzle-layout {
+    grid-template-columns: 1fr minmax(280px, 360px);
+    align-items: start;
+  }
+}
+
+.final-puzzle-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.final-puzzle-letter-bank-heading,
+.final-puzzle-solve-heading {
+  margin: 0 0 0.65rem;
+  font-size: 1.1rem;
+}
+
+.final-puzzle-immersive-mid {
+  display: grid;
+  gap: 1rem;
+}
+
+.final-puzzle-keyboard {
+  margin-top: 0.5rem;
+}
+
+.final-puzzle-confirm {
+  margin-top: 1rem;
+}
+
+.final-puzzle-solve-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 0.75rem;
+}
+
+.final-puzzle-answer-reveal {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.final-puzzle-win-msg {
+  margin: 0;
+  font-weight: 600;
+  color: #065f46;
+}
+
+.final-puzzle-again {
+  align-self: flex-start;
+}
+
+.letter-btn--final-given {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.letter-btn--final-picked {
+  box-shadow: inset 0 0 0 2px #2563eb;
+  font-weight: 800;
+}
+
+.final-puzzle-menu .final-puzzle-start-btn {
+  margin-top: 0.75rem;
+}
+
+.final-puzzle-immersive .final-puzzle-banner--immersive {
+  margin-bottom: 0.25rem;
+}
+
+.game-play-root .final-puzzle-title {
+  color: #f2f4f8;
+}
+
+.game-play-root .final-puzzle-rules,
+.game-play-root .final-puzzle-progress {
+  color: #c8ced9;
+}
+
+.game-play-root .final-puzzle-progress {
+  font-weight: 600;
+  color: #e8eaef;
+}
+
+.game-play-root .final-puzzle-answer-reveal {
+  color: #e8eaef;
+}
+
+.game-play-root .final-puzzle-win-msg {
+  color: #86efac;
+}
+
+.game-play-root .letter-btn--final-given {
+  opacity: 0.4;
+}
+
+.game-play-root .letter-btn--final-picked {
+  box-shadow: inset 0 0 0 2px #93c5fd;
+}

@@ -20,6 +20,8 @@ interface GamePanelProps {
   onPassTurn: () => void
   onFinishRoundWithoutSolve: () => void
   roundScores: number[]
+  /** Banked totals from won rounds only */
+  cumulativeScores: number[]
   onWheelSpinComplete: (wedge: WheelWedge) => void
   /** True while a cash spin is waiting for a consonant */
   wheelSpinDisabled: boolean
@@ -41,6 +43,7 @@ export default function GamePanel({
   onPassTurn,
   onFinishRoundWithoutSolve,
   roundScores,
+  cumulativeScores,
   onWheelSpinComplete,
   wheelSpinDisabled,
 }: GamePanelProps) {
@@ -62,9 +65,20 @@ export default function GamePanel({
               className={`player-roster-item ${isCurrent ? 'player-roster-item--current' : ''}`}
             >
               <span className="player-roster-name">{player.name}</span>
-              <span className="player-round-score" aria-label={`Round total for ${player.name}`}>
-                ${(roundScores[index] ?? 0).toLocaleString()}
-              </span>
+              <div className="player-score-lines">
+                <span
+                  className="player-round-score"
+                  aria-label={`Round total for ${player.name}`}
+                >
+                  Round: ${(roundScores[index] ?? 0).toLocaleString()}
+                </span>
+                <span
+                  className="player-game-total"
+                  aria-label={`Game total for ${player.name}`}
+                >
+                  Game: ${(cumulativeScores[index] ?? 0).toLocaleString()}
+                </span>
+              </div>
               {isCurrent && <span className="player-roster-badge">Current turn</span>}
             </div>
           )

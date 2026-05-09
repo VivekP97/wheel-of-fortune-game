@@ -25,6 +25,7 @@ import {
   buyVowel,
   createGame,
   finishRoundWithoutSolve,
+  getHighestCumulativeScoreIndices,
   goToNextRound,
   guessConsonant,
   passTurn,
@@ -400,6 +401,7 @@ function App() {
                   setGameState(finishRoundWithoutSolve(gameState))
                 }}
                 roundScores={activeRound.roundScores}
+                cumulativeScores={gameState.cumulativeScores}
                 onWheelSpinComplete={handleWheelSpinComplete}
                 wheelSpinDisabled={activeRound.pendingWheelValue !== null}
               />
@@ -433,7 +435,38 @@ function App() {
           {gameState?.phase === 'gameComplete' && (
             <section className="panel summary game-complete-panel">
               <h2>Game Complete</h2>
-              <p>All rounds are complete.</p>
+              <p className="game-complete-intro">
+                Final scores count only cash you <strong>banked</strong> by solving a puzzle
+                (your round total when you solved).
+              </p>
+              <h3 className="game-complete-standings-heading">Final standings</h3>
+              <ol className="result-list game-final-standings">
+                {gameState.config.players
+                  .map((player, index) => ({
+                    player,
+                    index,
+                    total: gameState.cumulativeScores[index] ?? 0,
+                  }))
+                  .sort((a, b) => b.total - a.total)
+                  .map(({ player, total }) => (
+                    <li key={`final-${player.id}`}>
+                      {player.name}: <strong>${total.toLocaleString()}</strong>
+                    </li>
+                  ))}
+              </ol>
+              {(() => {
+                const top = getHighestCumulativeScoreIndices(gameState.cumulativeScores)
+                const names = top
+                  .map((i) => gameState.config.players[i]?.name)
+                  .filter(Boolean)
+                const label = names.length > 1 ? 'Winners' : 'Winner'
+                return (
+                  <p className="game-winner-declaration" role="status">
+                    {label}: <strong>{names.join(', ')}</strong>
+                  </p>
+                )
+              })()}
+              <h3 className="game-complete-rounds-heading">Rounds</h3>
               <ul className="result-list">
                 {gameState.roundResults.map((result) => {
                   const winner = gameState.config.players.find(

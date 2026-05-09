@@ -55,6 +55,11 @@ export interface GameState {
   currentRoundNumber: number
   activeRound: ActiveRound | null
   roundResults: RoundResult[]
+  /**
+   * Running totals across rounds. Only the round winner’s `roundScores[i]` is added here
+   * when they solve; other players’ round cash is not banked.
+   */
+  cumulativeScores: number[]
 }
 
 export interface ActionOutcome {

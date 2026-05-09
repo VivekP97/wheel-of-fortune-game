@@ -97,7 +97,19 @@ export const createGame = (
     currentRoundNumber: 1,
     activeRound: buildRound(puzzles[0], 0, config.players.length),
     roundResults: [],
+    cumulativeScores: Array.from({ length: config.players.length }, () => 0),
   }
+}
+
+/** Player indices tied for the highest cumulative score (everyone if all zero). */
+export const getHighestCumulativeScoreIndices = (
+  scores: readonly number[],
+): number[] => {
+  if (scores.length === 0) {
+    return []
+  }
+  const max = Math.max(...scores)
+  return scores.map((value, index) => (value === max ? index : -1)).filter((i) => i >= 0)
 }
 
 const withMessage = (
@@ -387,7 +399,13 @@ export const attemptSolve = (
     return [nextState, { success: false, message: 'Incorrect solve attempt.' }]
   }
 
-  const winner = state.config.players[state.activeRound.currentPlayerIndex]
+  const winnerIndex = state.activeRound.currentPlayerIndex
+  const winner = state.config.players[winnerIndex]
+  const bankAmount = state.activeRound.roundScores[winnerIndex]
+  const cumulativeScores = [...state.cumulativeScores]
+  cumulativeScores[winnerIndex] += bankAmount
+  const newTotal = cumulativeScores[winnerIndex]
+
   const result: RoundResult = {
     roundNumber: state.currentRoundNumber,
     puzzleId: state.activeRound.puzzle.id,
@@ -399,6 +417,7 @@ export const attemptSolve = (
     {
       ...state,
       phase: 'roundSolvedAwaitingAdvance',
+      cumulativeScores,
       roundResults: [...state.roundResults, result],
       activeRound: {
         ...state.activeRound,
@@ -410,7 +429,7 @@ export const attemptSolve = (
               .filter((char) => isLetter(char)),
           ),
         ),
-        lastActionMessage: `${winner.name} solved the puzzle.`,
+        lastActionMessage: `${winner.name} solved the puzzle and banks $${bankAmount.toLocaleString()} toward the game total (now $${newTotal.toLocaleString()}).`,
       },
     },
     { success: true, message: `${winner.name} solved the puzzle.` },
@@ -451,6 +470,7 @@ export const goToNextRound = (state: GameState): GameState => {
     return {
       ...state,
       phase: 'gameComplete',
+      activeRound: null,
     }
   }
 

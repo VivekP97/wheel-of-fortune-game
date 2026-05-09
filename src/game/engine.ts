@@ -6,6 +6,7 @@ import type {
   Player,
   Puzzle,
   RoundResult,
+  WheelSpinEffect,
 } from '../types/game'
 
 const LETTER_REGEX = /^[A-Z]$/
@@ -15,6 +16,9 @@ export const MAX_PLAYERS = 4
 export const MIN_PLAYERS = 1
 export const MIN_ROUNDS = 1
 export const DEFAULT_ROUNDS = 3
+
+/** Cost to reveal a vowel (paid before the letter is chosen). */
+export const VOWEL_PRICE = 250
 
 const isLetter = (char: string) => LETTER_REGEX.test(char)
 
@@ -57,11 +61,17 @@ export const isPuzzleSolved = (
 const countOccurrences = (answer: string, letter: string): number =>
   answer.split('').filter((char) => char === letter).length
 
-const buildRound = (puzzle: Puzzle, currentPlayerIndex = 0): ActiveRound => ({
+const buildRound = (
+  puzzle: Puzzle,
+  currentPlayerIndex: number,
+  playerCount: number,
+): ActiveRound => ({
   puzzle,
   guessedLetters: [],
   currentPlayerIndex,
-  lastActionMessage: 'Round started. Choose an action.',
+  lastActionMessage: `Spin the wheel or buy a vowel ($${VOWEL_PRICE}).`,
+  roundScores: Array.from({ length: playerCount }, () => 0),
+  pendingWheelValue: null,
 })
 
 export const createGame = (
@@ -85,7 +95,7 @@ export const createGame = (
     config,
     puzzles,
     currentRoundNumber: 1,
-    activeRound: buildRound(puzzles[0]),
+    activeRound: buildRound(puzzles[0], 0, config.players.length),
     roundResults: [],
   }
 }
@@ -120,6 +130,18 @@ export const guessConsonant = (
     return [state, { success: false, message: 'No active round.' }]
   }
 
+  const perLetter = state.activeRound.pendingWheelValue
+  if (perLetter === null) {
+    const msg = 'Spin the wheel before calling a consonant.'
+    return [
+      {
+        ...state,
+        activeRound: { ...state.activeRound, lastActionMessage: msg },
+      },
+      { success: false, message: msg },
+    ]
+  }
+
   const guess = normalizeGuess(input)
   if (!isConsonant(guess)) {
     return [state, { success: false, message: 'Please enter a consonant (A-Z).' }]
@@ -129,27 +151,42 @@ export const guessConsonant = (
     return [state, { success: false, message: `${guess} was already guessed.` }]
   }
 
+  const idx = state.activeRound.currentPlayerIndex
+  const player = state.config.players[idx]
   const occurrences = countOccurrences(state.activeRound.puzzle.answer, guess)
-  const nextState = {
-    ...state,
-    activeRound: {
-      ...state.activeRound,
-      guessedLetters: [...state.activeRound.guessedLetters, guess],
-    },
+  const scores = [...state.activeRound.roundScores]
+
+  const baseActive = {
+    ...state.activeRound,
+    guessedLetters: [...state.activeRound.guessedLetters, guess],
+    pendingWheelValue: null as number | null,
   }
 
   if (occurrences === 0) {
     return [
-      withMessage(nextState, `${guess} is not in the puzzle. Turn passes.`, true),
+      withMessage(
+        {
+          ...state,
+          activeRound: baseActive,
+        },
+        `${guess} is not in the puzzle. Turn passes.`,
+        true,
+      ),
       { success: true, message: `${guess} not found.` },
     ]
   }
 
+  const earned = perLetter * occurrences
+  scores[idx] += earned
   return [
-    withMessage(
-      nextState,
-      `${guess} appears ${occurrences} time${occurrences > 1 ? 's' : ''}.`,
-    ),
+    {
+      ...state,
+      activeRound: {
+        ...baseActive,
+        roundScores: scores,
+        lastActionMessage: `${guess}: ${occurrences} hit${occurrences > 1 ? 's' : ''}. ${player.name} earns $${earned.toLocaleString()} ($${perLetter.toLocaleString()} × ${occurrences}). Spin again or buy a vowel.`,
+      },
+    },
     { success: true, message: `${guess} found ${occurrences} time(s).` },
   ]
 }
@@ -162,6 +199,29 @@ export const buyVowel = (
     return [state, { success: false, message: 'No active round.' }]
   }
 
+  if (state.activeRound.pendingWheelValue !== null) {
+    const msg = 'You have a spin in play — call a consonant first.'
+    return [
+      {
+        ...state,
+        activeRound: { ...state.activeRound, lastActionMessage: msg },
+      },
+      { success: false, message: msg },
+    ]
+  }
+
+  const idx = state.activeRound.currentPlayerIndex
+  if (state.activeRound.roundScores[idx] < VOWEL_PRICE) {
+    const msg = `Vowels cost $${VOWEL_PRICE}. Earn cash with consonants first.`
+    return [
+      {
+        ...state,
+        activeRound: { ...state.activeRound, lastActionMessage: msg },
+      },
+      { success: false, message: msg },
+    ]
+  }
+
   const guess = normalizeGuess(input)
   if (!isVowel(guess)) {
     return [state, { success: false, message: 'Please enter a vowel (A, E, I, O, U).' }]
@@ -171,27 +231,38 @@ export const buyVowel = (
     return [state, { success: false, message: `${guess} was already guessed.` }]
   }
 
+  const scores = [...state.activeRound.roundScores]
+  scores[idx] -= VOWEL_PRICE
+
   const occurrences = countOccurrences(state.activeRound.puzzle.answer, guess)
-  const nextState = {
-    ...state,
-    activeRound: {
-      ...state.activeRound,
-      guessedLetters: [...state.activeRound.guessedLetters, guess],
-    },
+  const paidActive = {
+    ...state.activeRound,
+    roundScores: scores,
+    guessedLetters: [...state.activeRound.guessedLetters, guess],
   }
 
   if (occurrences === 0) {
     return [
-      withMessage(nextState, `${guess} is not in the puzzle. Turn passes.`, true),
+      withMessage(
+        {
+          ...state,
+          activeRound: paidActive,
+        },
+        `${guess} is not in the puzzle (–$${VOWEL_PRICE}). Turn passes.`,
+        true,
+      ),
       { success: true, message: `${guess} not found.` },
     ]
   }
 
   return [
-    withMessage(
-      nextState,
-      `${guess} appears ${occurrences} time${occurrences > 1 ? 's' : ''}.`,
-    ),
+    {
+      ...state,
+      activeRound: {
+        ...paidActive,
+        lastActionMessage: `${guess}: ${occurrences} hit${occurrences > 1 ? 's' : ''} (paid $${VOWEL_PRICE}). Spin or buy another vowel.`,
+      },
+    },
     { success: true, message: `${guess} found ${occurrences} time(s).` },
   ]
 }
@@ -200,7 +271,87 @@ export const passTurn = (state: GameState): GameState => {
   if (state.phase !== 'inRound' || !state.activeRound) {
     return state
   }
-  return withMessage(state, 'Turn passed.', true)
+  const currentIndex = state.activeRound.currentPlayerIndex
+  const nextIndex = nextPlayerIndex(currentIndex, state.config.players)
+  return {
+    ...state,
+    activeRound: {
+      ...state.activeRound,
+      currentPlayerIndex: nextIndex,
+      pendingWheelValue: null,
+      lastActionMessage: 'Turn passed.',
+    },
+  }
+}
+
+/** Apply a wheel result: cash adds to the current player’s round total; lose turn / bankrupt pass the turn (bankrupt also clears that total). */
+export const applyWheelSpinEffect = (
+  state: GameState,
+  effect: WheelSpinEffect,
+): [GameState, ActionOutcome] => {
+  if (state.phase !== 'inRound' || !state.activeRound) {
+    return [state, { success: false, message: 'No active round.' }]
+  }
+
+  const idx = state.activeRound.currentPlayerIndex
+  const player = state.config.players[idx]
+  const scores = [...state.activeRound.roundScores]
+
+  if (effect.kind === 'loseTurn') {
+    const next = withMessage(
+      {
+        ...state,
+        activeRound: {
+          ...state.activeRound,
+          roundScores: scores,
+          pendingWheelValue: null,
+        },
+      },
+      `${player.name}: Lose a turn!`,
+      true,
+    )
+    return [next, { success: true, message: 'Lose a turn' }]
+  }
+
+  if (effect.kind === 'bankrupt') {
+    scores[idx] = 0
+    const next = withMessage(
+      {
+        ...state,
+        activeRound: {
+          ...state.activeRound,
+          roundScores: scores,
+          pendingWheelValue: null,
+        },
+      },
+      `${player.name}: Bankrupt! Round total reset to $0. Turn passes.`,
+      true,
+    )
+    return [next, { success: true, message: 'Bankrupt' }]
+  }
+
+  if (state.activeRound.pendingWheelValue !== null) {
+    const msg = 'Call a consonant from your current spin before spinning again.'
+    return [
+      {
+        ...state,
+        activeRound: { ...state.activeRound, lastActionMessage: msg },
+      },
+      { success: false, message: msg },
+    ]
+  }
+
+  return [
+    {
+      ...state,
+      activeRound: {
+        ...state.activeRound,
+        pendingWheelValue: effect.value,
+        lastActionMessage: `${player.name} spun $${effect.value.toLocaleString()} per letter — choose a consonant.`,
+      },
+    },
+    { success: true, message: 'Cash' },
+  ]
 }
 
 export const attemptSolve = (
@@ -222,7 +373,17 @@ export const attemptSolve = (
   }
 
   if (normalizedProposal !== normalizedAnswer) {
-    const nextState = withMessage(state, 'Incorrect solve. Turn passes.', true)
+    const nextState = withMessage(
+      {
+        ...state,
+        activeRound: {
+          ...state.activeRound,
+          pendingWheelValue: null,
+        },
+      },
+      'Incorrect solve. Turn passes.',
+      true,
+    )
     return [nextState, { success: false, message: 'Incorrect solve attempt.' }]
   }
 
@@ -241,6 +402,7 @@ export const attemptSolve = (
       roundResults: [...state.roundResults, result],
       activeRound: {
         ...state.activeRound,
+        pendingWheelValue: null,
         guessedLetters: Array.from(
           new Set(
             state.activeRound.puzzle.answer
@@ -273,6 +435,7 @@ export const finishRoundWithoutSolve = (state: GameState): GameState => {
     roundResults: [...state.roundResults, result],
     activeRound: {
       ...state.activeRound,
+      pendingWheelValue: null,
       lastActionMessage: 'Round ended without a solve.',
     },
   }
@@ -307,6 +470,7 @@ export const goToNextRound = (state: GameState): GameState => {
     activeRound: buildRound(
       nextPuzzle,
       nextStartingPlayerIndex >= 0 ? nextStartingPlayerIndex : 0,
+      state.config.players.length,
     ),
   }
 }

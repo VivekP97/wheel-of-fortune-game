@@ -20,6 +20,7 @@ import {
   DEFAULT_ROUNDS,
   MAX_PLAYERS,
   MIN_PLAYERS,
+  applyWheelSpinEffect,
   attemptSolve,
   buyVowel,
   createGame,
@@ -27,7 +28,9 @@ import {
   goToNextRound,
   guessConsonant,
   passTurn,
+  VOWEL_PRICE,
 } from './game/engine'
+import { wedgeToSpinEffect, type WheelWedge } from './game/fortuneWheel'
 import { getLatestRoundResult } from './game/round'
 import type { GameState, Player, Puzzle } from './types/game'
 
@@ -146,6 +149,24 @@ function App() {
     soundManagerRef.current?.playPreview(soundId)
   }
 
+  const handleWheelSpinComplete = (wedge: WheelWedge) => {
+    if (!gameState || gameState.phase !== 'inRound') {
+      return
+    }
+    const effect = wedgeToSpinEffect(wedge)
+    const [next, outcome] = applyWheelSpinEffect(gameState, effect)
+    setGameState(next)
+    if (!outcome.success) {
+      playFailureTone()
+      return
+    }
+    if (effect.kind === 'cash') {
+      playRevealTone()
+    } else {
+      playFailureTone()
+    }
+  }
+
   const soundsByCategory: Record<SoundCategory, ReturnType<GameSoundManager['getSoundsByCategory']>> =
     {
       bells: soundManagerRef.current?.getSoundsByCategory('bells') ?? [],
@@ -207,7 +228,12 @@ function App() {
     if (!gameState || hasPendingReveals) {
       return
     }
-    const [next] = guessConsonant(gameState, letter)
+    const [next, outcome] = guessConsonant(gameState, letter)
+    if (!outcome.success) {
+      playFailureTone()
+      setGameState(next)
+      return
+    }
     const answer = next.activeRound?.puzzle.answer ?? ''
     const hits = collectMatchingLetterIndices(answer, letter).filter(
       (index) =>
@@ -224,7 +250,12 @@ function App() {
     if (!gameState || hasPendingReveals) {
       return
     }
-    const [next] = buyVowel(gameState, letter)
+    const [next, outcome] = buyVowel(gameState, letter)
+    if (!outcome.success) {
+      playFailureTone()
+      setGameState(next)
+      return
+    }
     const answer = next.activeRound?.puzzle.answer ?? ''
     const hits = collectMatchingLetterIndices(answer, letter).filter(
       (index) =>
@@ -368,10 +399,19 @@ function App() {
                   }
                   setGameState(finishRoundWithoutSolve(gameState))
                 }}
+                roundScores={activeRound.roundScores}
+                onWheelSpinComplete={handleWheelSpinComplete}
+                wheelSpinDisabled={activeRound.pendingWheelValue !== null}
               />
               <LetterKeyboard
                 guessedLetters={activeRound.guessedLetters}
                 disabled={letterInputLocked}
+                letterPickMode={
+                  activeRound.pendingWheelValue !== null ? 'consonantsOnly' : 'vowelsOnly'
+                }
+                canAffordVowel={
+                  activeRound.roundScores[activeRound.currentPlayerIndex] >= VOWEL_PRICE
+                }
                 onPickConsonant={submitConsonant}
                 onPickVowel={submitVowel}
               />

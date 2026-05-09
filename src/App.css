@@ -277,6 +277,12 @@ button:disabled {
   border: 1px solid #b8bcc4;
 }
 
+.keyboard-mode-hint {
+  margin: -0.25rem 0 0.65rem;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
 .keyboard {
   display: grid;
   grid-template-columns: repeat(13, minmax(28px, 1fr));
@@ -362,6 +368,13 @@ button:disabled {
   font-size: 1.15rem;
   font-weight: 700;
   color: #1c2233;
+  letter-spacing: 0.02em;
+}
+
+.player-round-score {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #166534;
   letter-spacing: 0.02em;
 }
 
@@ -733,6 +746,7 @@ button.danger {
 
 .game-play-root .category,
 .game-play-root .muted,
+.game-play-root .keyboard-mode-hint,
 .game-play-root .drag-hint,
 .game-play-root .turn-label {
   color: #b4bac8;
@@ -758,6 +772,10 @@ button.danger {
 
 .game-play-root .player-roster-item--current .player-roster-name {
   color: #fff;
+}
+
+.game-play-root .player-round-score {
+  color: #bbf7d0;
 }
 
 .game-play-root .player-roster-badge {

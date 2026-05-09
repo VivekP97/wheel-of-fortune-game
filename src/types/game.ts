@@ -17,11 +17,24 @@ export interface RoundResult {
   solved: boolean
 }
 
+/** Outcome of a wheel spin used by the game engine. */
+export type WheelSpinEffect =
+  | { kind: 'cash'; value: number }
+  | { kind: 'loseTurn' }
+  | { kind: 'bankrupt' }
+
 export interface ActiveRound {
   puzzle: Puzzle
   guessedLetters: string[]
   currentPlayerIndex: number
   lastActionMessage: string
+  /** Cash earned this round only (indexed by player order); Bankrupt clears current player’s entry. */
+  roundScores: number[]
+  /**
+   * After a cash wheel spin: dollars earned per matching consonant for the next guess only.
+   * `null` means the player may spin or buy a vowel — not a consonant from the wheel.
+   */
+  pendingWheelValue: number | null
 }
 
 export type GamePhase =

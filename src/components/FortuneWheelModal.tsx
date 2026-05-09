@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { VOWEL_PRICE } from '../game/engine'
 import {
   FORTUNE_WHEEL_WEDGES,
   buildWheelConicGradient,
@@ -13,6 +14,8 @@ interface FortuneWheelModalProps {
   onClose: () => void
   /** When true, open / spin / close are disabled */
   disabled?: boolean
+  /** Fires when the spin animation finishes (same wedge as shown in the modal). */
+  onSpinComplete?: (wedge: WheelWedge) => void
 }
 
 const SPIN_MS = 5200
@@ -26,6 +29,7 @@ export default function FortuneWheelModal({
   open,
   onClose,
   disabled = false,
+  onSpinComplete,
 }: FortuneWheelModalProps) {
   const titleId = useId()
   const [rotation, setRotation] = useState(0)
@@ -33,6 +37,8 @@ export default function FortuneWheelModal({
   const [lastResult, setLastResult] = useState<WheelWedge | null>(null)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const onSpinCompleteRef = useRef(onSpinComplete)
+  onSpinCompleteRef.current = onSpinComplete
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -100,7 +106,9 @@ export default function FortuneWheelModal({
     }
     closeTimerRef.current = setTimeout(() => {
       setSpinning(false)
-      setLastResult(FORTUNE_WHEEL_WEDGES[pick])
+      const wedge = FORTUNE_WHEEL_WEDGES[pick]
+      setLastResult(wedge)
+      onSpinCompleteRef.current?.(wedge)
       closeTimerRef.current = null
     }, spinDurationMs)
   }, [spinning, disabled, spinDurationMs])
@@ -128,8 +136,10 @@ export default function FortuneWheelModal({
           Wheel of Fortune
         </h2>
         <p className="fortune-wheel-modal-hint muted">
-          Pointer at the top — spin for a random wedge (same mix as the TV show: cash,
-          Bankrupt, Lose a Turn).
+          Pointer at the top. <strong>Cash</strong> sets dollars <em>per consonant</em> for your
+          next guess (× how many appear). Vowels are bought separately ($
+          {VOWEL_PRICE.toLocaleString()} each). <strong>Bankrupt</strong> wipes your round total
+          and passes; <strong>Lose a Turn</strong> passes.
         </p>
 
         <div className="fortune-wheel-stage">

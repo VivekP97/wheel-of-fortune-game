@@ -1,3 +1,5 @@
+import type { WheelSpinEffect } from '../types/game'
+
 export type WheelWedgeKind = 'cash' | 'bankrupt' | 'loseTurn'
 
 export interface WheelWedge {
@@ -54,4 +56,14 @@ export function buildWheelConicGradient(wedges: readonly WheelWedge[]): string {
     return `${w.fill} ${start}deg ${end}deg`
   })
   return `conic-gradient(from 0deg, ${parts.join(', ')})`
+}
+
+export function wedgeToSpinEffect(w: WheelWedge): WheelSpinEffect {
+  if (w.kind === 'cash') {
+    return { kind: 'cash', value: w.value ?? 0 }
+  }
+  if (w.kind === 'loseTurn') {
+    return { kind: 'loseTurn' }
+  }
+  return { kind: 'bankrupt' }
 }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import FortuneWheelModal from './FortuneWheelModal'
 import SolveOutcomeBanner from './SolveOutcomeBanner'
 import type { Player } from '../types/game'
+import type { WheelWedge } from '../game/fortuneWheel'
 
 interface GamePanelProps {
   players: Player[]
@@ -18,6 +19,10 @@ interface GamePanelProps {
   onSubmitSolve: () => void
   onPassTurn: () => void
   onFinishRoundWithoutSolve: () => void
+  roundScores: number[]
+  onWheelSpinComplete: (wedge: WheelWedge) => void
+  /** True while a cash spin is waiting for a consonant */
+  wheelSpinDisabled: boolean
 }
 
 export default function GamePanel({
@@ -35,6 +40,9 @@ export default function GamePanel({
   onSubmitSolve,
   onPassTurn,
   onFinishRoundWithoutSolve,
+  roundScores,
+  onWheelSpinComplete,
+  wheelSpinDisabled,
 }: GamePanelProps) {
   const [wheelOpen, setWheelOpen] = useState(false)
 
@@ -54,6 +62,9 @@ export default function GamePanel({
               className={`player-roster-item ${isCurrent ? 'player-roster-item--current' : ''}`}
             >
               <span className="player-roster-name">{player.name}</span>
+              <span className="player-round-score" aria-label={`Round total for ${player.name}`}>
+                ${(roundScores[index] ?? 0).toLocaleString()}
+              </span>
               {isCurrent && <span className="player-roster-badge">Current turn</span>}
             </div>
           )
@@ -79,9 +90,11 @@ export default function GamePanel({
           </button>
           <button
             type="button"
-            className="btn-grey"
             onClick={() => setWheelOpen(true)}
-            disabled={roundControlsLocked}
+            disabled={roundControlsLocked || wheelSpinDisabled}
+            title={
+              wheelSpinDisabled ? 'Call a consonant from your current spin first' : undefined
+            }
           >
             Spin wheel
           </button>
@@ -115,7 +128,8 @@ export default function GamePanel({
       <FortuneWheelModal
         open={wheelOpen}
         onClose={() => setWheelOpen(false)}
-        disabled={roundControlsLocked}
+        disabled={roundControlsLocked || wheelSpinDisabled}
+        onSpinComplete={onWheelSpinComplete}
       />
     </section>
   )

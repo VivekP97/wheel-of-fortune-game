@@ -74,6 +74,59 @@ const buildRound = (
   pendingWheelValue: null,
 })
 
+/** Restore an in-progress game: current round’s puzzle starts fresh (no guessed letters). */
+export const resumeGameFromSave = (input: {
+  config: GameConfig
+  puzzles: Puzzle[]
+  currentRoundNumber: number
+  currentPlayerIndex: number
+  cumulativeScores: number[]
+  roundResults: RoundResult[]
+}): GameState => {
+  const {
+    config,
+    puzzles,
+    currentRoundNumber,
+    currentPlayerIndex,
+    cumulativeScores,
+    roundResults,
+  } = input
+
+  if (config.players.length < MIN_PLAYERS || config.players.length > MAX_PLAYERS) {
+    throw new Error(`Player count must be between ${MIN_PLAYERS} and ${MAX_PLAYERS}.`)
+  }
+  if (config.maxRounds < MIN_ROUNDS) {
+    throw new Error('At least one round is required.')
+  }
+  if (puzzles.length < config.maxRounds) {
+    throw new Error('Not enough puzzles for the selected number of rounds.')
+  }
+  if (currentRoundNumber < 1 || currentRoundNumber > config.maxRounds) {
+    throw new Error('Invalid round number.')
+  }
+  if (currentPlayerIndex < 0 || currentPlayerIndex >= config.players.length) {
+    throw new Error('Invalid current player.')
+  }
+  if (cumulativeScores.length !== config.players.length) {
+    throw new Error('Cumulative scores do not match players.')
+  }
+
+  const puzzle = puzzles[currentRoundNumber - 1]
+  if (!puzzle) {
+    throw new Error('Missing puzzle for this round.')
+  }
+
+  return {
+    phase: 'inRound',
+    config,
+    puzzles,
+    currentRoundNumber,
+    roundResults: roundResults.map((r) => ({ ...r })),
+    cumulativeScores: cumulativeScores.map((n) => n),
+    activeRound: buildRound(puzzle, currentPlayerIndex, config.players.length),
+  }
+}
+
 export const createGame = (
   puzzles: Puzzle[],
   config: GameConfig,

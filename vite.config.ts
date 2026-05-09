@@ -13,6 +13,7 @@ const finalPuzzleFilePath = path.resolve(
   process.cwd(),
   'public/data/final-puzzle.json',
 )
+const savedGameFilePath = path.resolve(process.cwd(), 'public/data/saved-game.json')
 
 const createJsonFileApiMiddleware = (
   filePath: string,
@@ -93,6 +94,14 @@ const puzzleApiPlugin = (): Plugin => ({
         finalPuzzleFilePath,
         'Could not read final puzzle file.',
         'Could not save final puzzle file.',
+      ),
+    )
+    server.middlewares.use(
+      '/api/saved-game',
+      createJsonFileApiMiddleware(
+        savedGameFilePath,
+        'Could not read saved game file.',
+        'Could not save saved game file.',
       ),
     )
   },

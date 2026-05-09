@@ -17,6 +17,12 @@ import { loadFinalPuzzle } from './data/loadFinalPuzzle'
 import { loadSoundSettings, saveSoundSettings } from './data/soundSettings'
 import { loadPuzzles } from './data/loadPuzzles'
 import {
+  gameStateToSavedPayload,
+  loadSavedGameFile,
+  saveSavedGameFile,
+  savedPayloadToGameState,
+} from './data/savedGame'
+import {
   DEFAULT_ROUNDS,
   MAX_PLAYERS,
   MIN_PLAYERS,
@@ -63,7 +69,22 @@ function App() {
   const [isSoundMuted, setIsSoundMuted] = useState(false)
   const [soundProfile, setSoundProfile] = useState<SoundProfile>(DEFAULT_SOUND_PROFILE)
   const [soundSettingsLoaded, setSoundSettingsLoaded] = useState(false)
+  const [savedGameSummary, setSavedGameSummary] = useState<{ savedAt: string } | null>(null)
+  const [savedGameMenuError, setSavedGameMenuError] = useState('')
   const soundManagerRef = useRef<GameSoundManager | null>(null)
+
+  const refreshSavedGameSlot = () => {
+    void (async () => {
+      try {
+        const payload = await loadSavedGameFile()
+        setSavedGameSummary(payload ? { savedAt: payload.savedAt } : null)
+        setSavedGameMenuError('')
+      } catch {
+        setSavedGameSummary(null)
+        setSavedGameMenuError('Could not read saved game file.')
+      }
+    })()
+  }
 
   useEffect(() => {
     void (async () => {
@@ -93,6 +114,12 @@ function App() {
       }
     })()
   }, [])
+
+  useEffect(() => {
+    if (activeView === 'play' && !gameState) {
+      refreshSavedGameSlot()
+    }
+  }, [activeView, gameState])
 
   useEffect(() => {
     void (async () => {
@@ -308,6 +335,49 @@ function App() {
     clearRevealState()
   }
 
+  const saveGameAndExitToMenu = () => {
+    if (!gameState || gameState.phase !== 'inRound') {
+      return
+    }
+    void (async () => {
+      try {
+        const payload = gameStateToSavedPayload(gameState)
+        await saveSavedGameFile(payload)
+        setSavedGameSummary({ savedAt: payload.savedAt })
+        exitGame()
+      } catch (error) {
+        setSolveBanner({
+          variant: 'error',
+          message:
+            error instanceof Error ? error.message : 'Could not save game to file.',
+        })
+      }
+    })()
+  }
+
+  const continueSavedGame = () => {
+    setSavedGameMenuError('')
+    void (async () => {
+      try {
+        const payload = await loadSavedGameFile()
+        if (!payload) {
+          setSavedGameSummary(null)
+          return
+        }
+        const next = savedPayloadToGameState(payload)
+        setGameState(next)
+        setSolveInput('')
+        setSolveBanner(null)
+        clearRevealState()
+        setLoadError('')
+      } catch (error) {
+        setSavedGameMenuError(
+          error instanceof Error ? error.message : 'Could not continue saved game.',
+        )
+      }
+    })()
+  }
+
   const isImmersivePlaySession = activeView === 'play' && gameState !== null
   const isImmersiveFinalSession =
     activeView === 'final' && finalPuzzleSessionActive && finalPuzzle !== null
@@ -331,6 +401,15 @@ function App() {
         <button type="button" className="exit-game-btn" onClick={exitGame}>
           Exit game
         </button>
+        {gameState?.phase === 'inRound' && (
+          <button
+            type="button"
+            className="save-game-btn"
+            onClick={saveGameAndExitToMenu}
+          >
+            Save &amp; menu
+          </button>
+        )}
         <button
           type="button"
           className="mute-sound-btn"
@@ -577,12 +656,16 @@ function App() {
         <header>
           <h1>Wheel of Fortune Puzzle Board</h1>
           <p>
-            Local multiplayer helper app with custom puzzles from
-            <code> public/data/puzzles.json</code>
+            Local multiplayer helper app with custom puzzles from{' '}
+            <code>public/data/puzzles.json</code>. In-progress games save to{' '}
+            <code>public/data/saved-game.json</code> (dev server only for file API).
           </p>
         </header>
 
         {loadError && <p className="error-banner">{loadError}</p>}
+        {savedGameMenuError && activeView === 'play' && !gameState && (
+          <p className="error-banner">{savedGameMenuError}</p>
+        )}
         {finalPuzzleError && activeView === 'final' && (
           <p className="error-banner">{finalPuzzleError}</p>
         )}
@@ -640,6 +723,21 @@ function App() {
         {activeView === 'play' && !gameState && (
           <section className="panel setup">
             <h2>Game Setup</h2>
+            {savedGameSummary && (
+              <div className="saved-game-continue-block">
+                <p className="muted">
+                  Saved game from{' '}
+                  <time dateTime={savedGameSummary.savedAt}>
+                    {new Date(savedGameSummary.savedAt).toLocaleString()}
+                  </time>{' '}
+                  — the current round restarts from a fresh board; banked totals and turn are
+                  restored.
+                </p>
+                <button type="button" onClick={continueSavedGame}>
+                  Continue saved game
+                </button>
+              </div>
+            )}
             <label>
               Number of players (1-4)
               <input

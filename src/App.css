@@ -1074,3 +1074,154 @@ button.danger {
 .game-play-root .letter-btn--final-picked {
   box-shadow: inset 0 0 0 2px #93c5fd;
 }
+
+/* Fortune wheel modal (portaled to body) */
+.fortune-wheel-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: rgba(8, 10, 16, 0.72);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.fortune-wheel-modal {
+  width: min(420px, 100%);
+  max-height: min(92vh, 640px);
+  overflow: auto;
+  background: linear-gradient(180deg, #1c2436 0%, #121820 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 0.85rem;
+  padding: 1.15rem 1.25rem 1.35rem;
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  color: #e8eaef;
+}
+
+.fortune-wheel-modal-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.2rem;
+  text-align: center;
+  color: #f8fafc;
+}
+
+.fortune-wheel-modal .muted {
+  color: #9aa3b2;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  margin: 0 0 1rem;
+  text-align: center;
+}
+
+.fortune-wheel-stage {
+  position: relative;
+  width: min(300px, 78vw);
+  aspect-ratio: 1;
+  margin: 0 auto 1.1rem;
+}
+
+.fortune-wheel-pointer {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-top: 24px solid #f5e6a8;
+  z-index: 6;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+}
+
+.fortune-wheel-rotor {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  transform-origin: 50% 50%;
+  box-shadow:
+    inset 0 0 0 4px rgba(0, 0, 0, 0.35),
+    0 10px 28px rgba(0, 0, 0, 0.5);
+  will-change: transform;
+}
+
+.fortune-wheel-spoke {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 38%;
+  height: 50%;
+  margin-left: -19%;
+  margin-top: -50%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 5%;
+  transform-origin: 50% 100%;
+  pointer-events: none;
+}
+
+.fortune-wheel-label-text {
+  font-size: clamp(0.42rem, 2.4vw, 0.58rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1.05;
+  text-align: center;
+  max-width: 3.4rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+
+.fortune-wheel-label--light {
+  color: #fffef8;
+}
+
+.fortune-wheel-label--dark {
+  color: #f3f4f6;
+}
+
+.fortune-wheel-label--muted {
+  color: #1e293b;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.fortune-wheel-hub {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 19%;
+  height: 19%;
+  margin: -9.5% 0 0 -9.5%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 30%, #6eb6e8, #1a4a78);
+  box-shadow:
+    inset 0 2px 6px rgba(255, 255, 255, 0.35),
+    0 2px 10px rgba(0, 0, 0, 0.45);
+  z-index: 4;
+  pointer-events: none;
+}
+
+.fortune-wheel-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: center;
+  margin-bottom: 0.35rem;
+}
+
+.fortune-wheel-result {
+  margin: 0.65rem 0 0;
+  text-align: center;
+  font-size: 1rem;
+  color: #c8d4e4;
+}
+
+.fortune-wheel-result strong {
+  color: #fde68a;
+}

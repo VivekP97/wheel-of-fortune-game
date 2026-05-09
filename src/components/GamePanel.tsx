@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import FortuneWheelModal from './FortuneWheelModal'
 import SolveOutcomeBanner from './SolveOutcomeBanner'
 import type { Player } from '../types/game'
 
@@ -34,6 +36,8 @@ export default function GamePanel({
   onPassTurn,
   onFinishRoundWithoutSolve,
 }: GamePanelProps) {
+  const [wheelOpen, setWheelOpen] = useState(false)
+
   return (
     <section className="panel game-panel">
       <h2>Round Controls</h2>
@@ -76,6 +80,14 @@ export default function GamePanel({
           <button
             type="button"
             className="btn-grey"
+            onClick={() => setWheelOpen(true)}
+            disabled={roundControlsLocked}
+          >
+            Spin wheel
+          </button>
+          <button
+            type="button"
+            className="btn-grey"
             onClick={onPassTurn}
             disabled={roundControlsLocked}
           >
@@ -99,6 +111,12 @@ export default function GamePanel({
           onDismiss={onDismissSolveBanner}
         />
       )}
+
+      <FortuneWheelModal
+        open={wheelOpen}
+        onClose={() => setWheelOpen(false)}
+        disabled={roundControlsLocked}
+      />
     </section>
   )
 }
